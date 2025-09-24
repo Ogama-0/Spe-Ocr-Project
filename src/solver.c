@@ -1,4 +1,4 @@
 
 int solve(char* filename){
-  return 0;
+  return 1;
 }
