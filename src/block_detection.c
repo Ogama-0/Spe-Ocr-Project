@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "err.h"
+#include "detect_grid.h"
 
 // binarize the image (black and white)
 void binarize(SDL_Surface* surface)
@@ -44,43 +45,32 @@ void binarize(SDL_Surface* surface)
   }
 }
 
-// main function to crate the surface
-// and call every functions
-void detect_grid(char* file, int n)
+int is_black(Uint32 pixel)
 {
-  SDL_Surface* load = IMG_Load(file);
-
-  if (load == NULL)
+  if (pixel <= 255)
   {
-    errx(EXIT_FAILURE,"error on importing file: %s\n",SDL_GetError());
+    return 1;
   }
-
-  SDL_Surface* image_format = SDL_ConvertSurfaceFormat(load,
-    SDL_PIXELFORMAT_RGBA8888,0);
-
-  if (image_format == NULL)
-  {
-    errx(EXIT_FAILURE,"error on formatting image: %s\n",SDL_GetError());
-  }
-
-  if (SDL_LockSurface(image_format) < 0)
-  {
-    errx(EXIT_FAILURE,"error on locking surface: %s\n",SDL_GetError());
-  }
-
-  // int height = image_format->h;
-  // int width = image_format->w;
-  // Uint32* pixels = image_format->pixels;
-  // SDL_PixelFormat* format = image_format->format;
-
-  binarize(image_format);
-
-  SDL_UnlockSurface(image_format);
-
-  SDL_SaveBMP(image_format, "binarized.bmp");
-  SDL_FreeSurface(image_format);
-  SDL_FreeSurface(load);
+  return 0;
 }
 
-// test function
-int main() { }
+// transform the binarized image into an array of 0 and 1
+void formatting_binarized(SDL_Surface* binarized_surface,
+                            Uint8* res)
+{
+  int w = binarized_surface->w;
+  int h = binarized_surface->h;
+  Uint32* p = binarized_surface->pixels;
+
+  for (int i = 0; i < w*h; i++)
+  {
+    if (is_black(p[i]))
+    {
+      res[i] = 1;
+    }
+    else
+    {
+      res[i] = 0;
+    }
+  }
+}
