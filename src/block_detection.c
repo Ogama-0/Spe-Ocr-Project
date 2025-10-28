@@ -5,15 +5,12 @@
 #include "err.h"
 #include "detect_grid.h"
 
-// binarize the image (black and white)
-void binarize(SDL_Surface* surface)
+void grayscale(SDL_Surface* surface)
 {
-  // grab the surface's attributes
   Uint32* pixels = surface->pixels;
   int height = surface->h;
   int width = surface->w;
 
-  // iterate through entire image
   for (int i = 0; i < height; i++)
   {
     for (int j = 0; j < width; j++)
@@ -23,26 +20,53 @@ void binarize(SDL_Surface* surface)
       Uint8 b;
       Uint8 a;
 
-      // get pixel components
       SDL_GetRGBA(pixels[i*width+j],
                  surface->format,&r,&g,&b,&a);
 
       Uint8 gray = (Uint8)(0.3 * r + 0.59 * g + 0.11 * b);
 
+      pixels[i*width+j] =
+        SDL_MapRGBA(surface->format,gray,gray,gray,a);
+    }
+  }
+
+  SDL_SaveBMP(surface,"images/grayscale.bmp");
+}
+
+void binarize(SDL_Surface* surface)
+{
+  Uint32* pixels = surface->pixels;
+  int height = surface->h;
+  int width = surface->w;
+
+  for (int i = 0; i < height; i++)
+  {
+    for (int j = 0; j < width; j++)
+    {
+      Uint8 r;
+      Uint8 g;
+      Uint8 b;
+      Uint8 a;
+
+      SDL_GetRGBA(pixels[i*width+j],
+                 surface->format,&r,&g,&b,&a);
+
+      Uint8 gray = r;
+
       if (gray > 200)
       {
-        // put pixel in white
         pixels[i*width+j] =
           SDL_MapRGBA(surface->format,255,255,255,a);
       }
       else
       {
-        // put pixel in black
         pixels[i*width+j] =
           SDL_MapRGBA(surface->format,0,0,0,a);
       }
     }
   }
+
+  SDL_SaveBMP(surface,"images/binarized.bmp");
 }
 
 int is_black(Uint32 pixel)
