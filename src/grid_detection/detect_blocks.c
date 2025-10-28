@@ -34,6 +34,8 @@ void detect_blocks(char* file)
   // Uint32* pixels = image_format->pixels;
   // SDL_PixelFormat* format = image_format->format;
 
+  grayscale(image_format);
+
   binarize(image_format);
 
   Uint8 res[height*width];
@@ -41,7 +43,6 @@ void detect_blocks(char* file)
 
   size_t size_blocks = 0;
   SDL_Rect* blocks = get_blocks(image_format,res,&size_blocks);
-  printf("%zu\n",size_blocks);
 
   save_blocks(image_format,blocks,size_blocks);
 
@@ -49,12 +50,12 @@ void detect_blocks(char* file)
 
   SDL_UnlockSurface(image_format);
 
-  SDL_SaveBMP(image_format, "binarized.bmp");
   SDL_FreeSurface(image_format);
   SDL_FreeSurface(load);
 }
 
 int main(int argc, char* argv[])
 {
+  if (argc != 2) errx(EXIT_FAILURE,"wrong num of args\n");
   detect_blocks(argv[1]);
 }

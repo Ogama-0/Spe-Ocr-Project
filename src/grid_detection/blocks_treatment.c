@@ -113,7 +113,8 @@ SDL_Rect* get_blocks(SDL_Surface* surface,Uint8* image,size_t* size)
 
   int height = surface->h;
   int width = surface->w;
-  Uint32* pixels = surface->pixels;
+  // Uint32* pixels = surface->pixels;
+  
   // create the array with the visited pixels.
   int** visited = calloc(height,sizeof(int*));
   if (visited == NULL)
@@ -163,8 +164,8 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* blocks,size_t size)
       SDL_PIXELFORMAT_RGBA8888
     );
 
-    printf("Bloc %zu: x=%d y=%d w=%d h=%d\n",i,blocks[i].x,blocks[i].y,
-           blocks[i].w,blocks[i].h);
+    // printf("Bloc %zu: x=%d y=%d w=%d h=%d\n",i,blocks[i].x,blocks[i].y,
+           // blocks[i].w,blocks[i].h);
 
     if (!surf)
     {
