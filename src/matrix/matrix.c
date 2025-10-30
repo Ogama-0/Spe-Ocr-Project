@@ -86,25 +86,18 @@ Matrix *matrix_load(char *file_string) {
 }
 
 double uniform_distribution(double low, double high) {
-  double difference = high - low; // The difference between the two
-  int scale = 10000;
-  int scaled_difference = (int)(difference * scale);
-  return low + (1.0 * (rand() % scaled_difference) / scale);
+  double r = (double)rand() / (double)RAND_MAX; // valeur entre 0 et 1
+  return low + r * (high - low);
 }
 
 void matrix_randomize(Matrix *m, int n) {
-  // Pulling from a random distribution of
-  // Min: -1 / sqrt(n)
-  // Max: 1 / sqrt(n)
-  double min = -1.0 / sqrt(n);
-  double max = 1.0 / sqrt(n);
+  double range = 1.0 / sqrt(n); // Xavier-like
   for (int i = 0; i < m->rows; i++) {
     for (int j = 0; j < m->cols; j++) {
-      m->entries[i][j] = uniform_distribution(min, max);
+      m->entries[i][j] = uniform_distribution(-range, range);
     }
   }
 }
-
 int matrix_argmax(Matrix *m) {
   // Expects a Mx1 matrix
   double max_score = 0;
