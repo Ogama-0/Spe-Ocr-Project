@@ -1,9 +1,8 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "err.h"
-#include "detect_grid.h"
+#include "blocks_treatment.h"
 
 // for a black pixel, check if it's an existing block.
 // If not, create a new block.
@@ -153,7 +152,6 @@ SDL_Rect* get_blocks(SDL_Surface* surface,Uint8* image,size_t* size)
 // save each block into an image with bmp format.
 void save_blocks(SDL_Surface* surface,SDL_Rect* blocks,size_t size)
 {
-  SDL_UnlockSurface(surface);
   for (size_t i = 0; i < size; i++)
   {
     SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(
@@ -188,5 +186,4 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* blocks,size_t size)
     SDL_SaveBMP(surf,filename);
     SDL_FreeSurface(surf);
   }
-  SDL_LockSurface(surface);
 }
