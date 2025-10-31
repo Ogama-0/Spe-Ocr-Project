@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 `sdl2-config --cflags`
-LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_gfx
+CFLAGS = -Wall -Wextra -std=c11 `sdl2-config --cflags` `pkg-config --cflags --libs gdk-pixbuf-2.0`
+LDFLAGS = -lSDL2 `pkg-config --cflags --libs gdk-pixbuf-2.0` -lSDL2_gfx
 
-SRC = main.c denoise.c manual_rotate.c binarize.c
+SRC = main.c denoise.c manual_rotate.c binarize.c blocks_treatment.c
 OBJ = $(SRC:.c=.o)
 
 TARGET = preprocessing
@@ -10,7 +10,7 @@ TARGET = preprocessing
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(TARGET) images/* blocks/*

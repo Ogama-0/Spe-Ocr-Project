@@ -1,9 +1,8 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "err.h"
-#include "detect_grid.h"
+#include "binarize.h"
 
 void grayscale(SDL_Surface* surface)
 {
@@ -29,8 +28,6 @@ void grayscale(SDL_Surface* surface)
         SDL_MapRGBA(surface->format,gray,gray,gray,a);
     }
   }
-
-  SDL_SaveBMP(surface,"images/grayscale.bmp");
 }
 
 void binarize(SDL_Surface* surface)
@@ -65,8 +62,6 @@ void binarize(SDL_Surface* surface)
       }
     }
   }
-
-  SDL_SaveBMP(surface,"images/binarized.bmp");
 }
 
 int is_black(Uint32 pixel)
