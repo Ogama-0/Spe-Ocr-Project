@@ -4,8 +4,6 @@ typedef struct {
 	double lr;
 	Matrix* hidden_weights;
 	Matrix* output_weights;
-	Matrix *hidden_bias;
-	Matrix *output_bias;    
 } NeuralNetwork;
 
 typedef struct {
