@@ -53,17 +53,17 @@ int main(int argc, char* argv[])
   SDL_SaveBMP(formatted,"images/grayscale.bmp");
   printf("grayscale.bmp\n");
 
-  // binarize
-
-  binarize(formatted);
-  SDL_SaveBMP(formatted, "images/binarized.bmp");
-  printf("binarized.bmp\n");
-
   // denoise
 
   SDL_Surface* denoised = median_filter(formatted);
   SDL_SaveBMP(denoised, "images/denoised.bmp");
   printf("denoised.bmp\n");
+
+  // binarize
+
+  binarize(denoised);
+  SDL_SaveBMP(denoised, "images/binarized.bmp");
+  printf("binarized.bmp\n");
 
   // rotate image
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   }
 
   GError* error2 = NULL;
-  GdkPixbuf* pixbuf2 = gdk_pixbuf_new_from_file("images/denoised.bmp",&error);
+  GdkPixbuf* pixbuf2 = gdk_pixbuf_new_from_file("images/binarized.bmp",&error);
 
   if (pixbuf2 == NULL) {
     fprintf(stderr,"Error on loading from png: %s\n",error2->message);
@@ -120,13 +120,19 @@ int main(int argc, char* argv[])
   formatting_binarized(rotated_formatted,res);
 
   size_t size_blocks = 0;
+  size_t size_letters = 0;
   SDL_Rect* blocks = get_blocks(rotated_formatted,res,&size_blocks);
+  SDL_Rect* letters = get_letter_blocks(blocks,size_blocks,res,width,&size_letters);
 
-  save_blocks(rotated_formatted,blocks,size_blocks);
+  printf("nb of letters in main: %zu\n",size_letters);
+  
+  save_blocks(rotated_formatted,letters,size_letters);
   printf("Blocks saved in 'blocks/' folder.\n");
 
   free(blocks);
+  free(letters);
 
+  SDL_FreeSurface(rotated_formatted);
   SDL_FreeSurface(formatted);
   SDL_FreeSurface(denoised);
 
