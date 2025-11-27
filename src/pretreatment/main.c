@@ -67,7 +67,8 @@ int main(int argc, char* argv[])
 
   // rotate image
 
-  double angle;
+  double angle= 0;
+  /*
 
   printf("Enter rotation angle (degrees): ");
   if (scanf("%lf", &angle) != 1)
@@ -77,6 +78,7 @@ int main(int argc, char* argv[])
       SDL_FreeSurface(denoised);
       return 1;
   }
+  */
 
   GError* error2 = NULL;
   GdkPixbuf* pixbuf2 = gdk_pixbuf_new_from_file("images/binarized.bmp",&error);
@@ -87,16 +89,18 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  pixbuf2 = rotate_pixbuf(pixbuf2, angle);
+  GdkPixbuf* pixbuf3 = rotate_pixbuf(pixbuf2, angle);
   
-  if (!gdk_pixbuf_save(pixbuf2,"images/rotated_manual.bmp","bmp",&error2,NULL)) {
+  if (!gdk_pixbuf_save(pixbuf3,"images/rotated_manual.bmp","bmp",&error2,NULL)) {
     fprintf(stderr,"Error on saving base image to bmp: %s\n",error2->message);
     g_error_free(error2);
     g_object_unref(pixbuf2);
+    g_object_unref(pixbuf3);
     return 1;
   }
 
   g_object_unref(pixbuf2);
+  g_object_unref(pixbuf3);
 
   printf("rotated_manual.bmp\n");
 
@@ -135,7 +139,7 @@ int main(int argc, char* argv[])
   SDL_FreeSurface(rotated_formatted);
   SDL_FreeSurface(formatted);
   SDL_FreeSurface(denoised);
-
+  
   return 0;
   // if (SDL_LockSurface(image_format) < 0) {
     // errx(EXIT_FAILURE,"error on locking surface: %s\n",SDL_GetError());

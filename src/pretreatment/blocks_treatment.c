@@ -418,9 +418,9 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   struct Image_zone set2 = {blocks2,0,0,0,0,0,0};
   
   sort_blocks(letters,size);
-  // for (size_t i = 0; i < size; i++) {
-    // printf("%i %i\n",letters[i].y,letters[i].x);
-  // }
+  for (size_t i = 0; i < size; i++) {
+    printf("%i %i\n",letters[i].y,letters[i].x);
+  }
   
   get_sets(&set1,&s1,&cap1, &set2,&s2,&cap2,
            letters,size);
@@ -453,6 +453,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   printf("nb of columns and rows of words: %i %i\n",words.nb_col,words.nb_rows);
   printf("%i %i - %i %i\n\n",words.x_min,words.x_max,words.y_min,words.y_max);
 
+  /*
   size_t fdg = 0;
   size_t gdf = 0;
   while (fdg < size_grid && gdf < size_words) {
@@ -467,6 +468,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
     printf("             word: %i %i\n",words.blocks[gdf].x,words.blocks[gdf].y);
     gdf++;
   }
+  */
 
   // Save the grid's letters in bmp images
   for (size_t i = 0; i < (size_t)grid.nb_rows; i++) {
