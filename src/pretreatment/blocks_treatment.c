@@ -476,12 +476,6 @@ struct Rect* save_blocks(struct Rect *letters, int m_height,
 
     sort_blocks(letters, size);
 
-    /*
-    for (size_t i = 0; i < size; i++) {
-      printf("%i %i\n",letters[i].y,letters[i].x);
-    }
-    */
-
     get_sets(&set1, &s1, &cap1, &set2, &s2, &cap2, letters, size, m_height);
 
     struct Image_zone grid;
