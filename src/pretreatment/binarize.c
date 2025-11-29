@@ -30,11 +30,55 @@ void grayscale(SDL_Surface* surface)
   }
 }
 
+int comp(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
+int get_gray_mean(SDL_Surface* surface) {
+
+  Uint32* pixels = surface->pixels;
+  const int height = surface->h;
+  const int width = surface->w;
+  const size_t size = (size_t)(height*width);
+
+  // int gray_list[size];
+  int sum = 0;
+
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      Uint8 r;
+      Uint8 g;
+      Uint8 b;
+      Uint8 a;
+
+      SDL_GetRGBA(pixels[i*width+j],
+        surface->format,&r,&g,&b,&a);
+
+      sum += r;
+    }
+  }
+
+  /*
+  qsort(gray_list,size,sizeof(int),comp);
+
+  if (size % 2 == 0) {
+    return (gray_list[size/2]+gray_list[size/2-1])/2;
+  } else {
+    return gray_list[size/2];
+  }
+  */
+
+  size_t res = (size_t)sum/size;
+  return (int)res;
+}
+
 void binarize(SDL_Surface* surface)
 {
   Uint32* pixels = surface->pixels;
   int height = surface->h;
   int width = surface->w;
+
+  int median = get_gray_mean(surface);
 
   for (int i = 0; i < height; i++)
   {
@@ -50,7 +94,7 @@ void binarize(SDL_Surface* surface)
 
       Uint8 gray = r;
 
-      if (gray > 200)
+      if (gray >= median)
       {
         pixels[i*width+j] =
           SDL_MapRGBA(surface->format,255,255,255,a);
