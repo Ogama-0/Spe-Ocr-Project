@@ -278,7 +278,13 @@ SDL_Rect* get_letter_blocks(SDL_Rect* blocks,size_t size,
 
 int get_dist_blocks(struct Image_zone b1,SDL_Rect b2) {
   int x_diff;
-  int y_diff = b2.y-b1.y_max;
+  int y_diff;
+
+  if (b2.y < b1.y_max) {
+    y_diff = 0;
+  } else {
+    y_diff = b2.y - b1.y_max;
+  }
 
   if (b2.x+b2.w-1 < b1.x_min) {
     x_diff = b1.x_min-(b2.x+b2.w-1);
@@ -342,11 +348,11 @@ void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
 
       (*s1)++;
 
-    } else if (get_dist_blocks(*set1,blocks[i]) < 40) {
+    } else if (get_dist_blocks(*set1,blocks[i]) < 50) {
 
       set1->blocks[*s1] = blocks[i];
 
-      if (blocks[i].x+blocks[i].w-1 < set1->x_min) {
+      if (blocks[i].x < set1->x_min) {
         set1->x_min = blocks[i].x;
       } else if (blocks[i].x > set1->x_max) {
         set1->x_max = blocks[i].x+blocks[i].w-1;
@@ -365,6 +371,8 @@ void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
 
     } else {
 
+      printf("\ntoo far for grid: %i\n",get_dist_blocks(*set1,blocks[i]));
+
       if (*s2 == 0) {
 
         // initialize the second set.
@@ -382,7 +390,7 @@ void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
 
         set2->blocks[*s2] = blocks[i];
 
-        if (blocks[i].x+blocks[i].w-1 < set2->x_min) {
+        if (blocks[i].x < set2->x_min) {
           set2->x_min = blocks[i].x;
         } else if (blocks[i].x > set2->x_max) {
           set2->x_max = blocks[i].x+blocks[i].w-1;
@@ -416,11 +424,13 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   SDL_Rect* blocks2 = malloc(sizeof(SDL_Rect)*cap2);
   struct Image_zone set1 = {blocks1,0,0,0,0,0,0};
   struct Image_zone set2 = {blocks2,0,0,0,0,0,0};
-  
+
   sort_blocks(letters,size);
+  /*
   for (size_t i = 0; i < size; i++) {
     printf("%i %i\n",letters[i].y,letters[i].x);
   }
+  */
   
   get_sets(&set1,&s1,&cap1, &set2,&s2,&cap2,
            letters,size);
@@ -453,11 +463,10 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   printf("nb of columns and rows of words: %i %i\n",words.nb_col,words.nb_rows);
   printf("%i %i - %i %i\n\n",words.x_min,words.x_max,words.y_min,words.y_max);
 
-  /*
   size_t fdg = 0;
   size_t gdf = 0;
   while (fdg < size_grid && gdf < size_words) {
-    printf("grid: %i %i  word: %i %i\n",grid.blocks[fdg].x,
+    printf("grid: %i %i\tword: %i %i\n",grid.blocks[fdg].x,
            grid.blocks[fdg].y,words.blocks[gdf].x,words.blocks[gdf].y);
     fdg++;
     gdf++;
@@ -468,7 +477,6 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
     printf("             word: %i %i\n",words.blocks[gdf].x,words.blocks[gdf].y);
     gdf++;
   }
-  */
 
   // Save the grid's letters in bmp images
   for (size_t i = 0; i < (size_t)grid.nb_rows; i++) {
@@ -515,7 +523,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
 
   // save the words' letters in bmp images
   size_t i = 1;
-  int words_count = 1;
+  int words_count = 0;
   while (i < size_words) {
     size_t j = i-1;
     size_t size_row = 1;

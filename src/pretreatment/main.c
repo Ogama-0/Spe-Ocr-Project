@@ -53,22 +53,23 @@ int main(int argc, char* argv[])
   SDL_SaveBMP(formatted,"images/grayscale.bmp");
   printf("grayscale.bmp\n");
 
+  // binarize
+
+  binarize(formatted);
+  SDL_SaveBMP(formatted, "images/binarized.bmp");
+  printf("binarized.bmp\n");
+
   // denoise
 
   SDL_Surface* denoised = median_filter(formatted);
   SDL_SaveBMP(denoised, "images/denoised.bmp");
   printf("denoised.bmp\n");
-
-  // binarize
-
-  binarize(denoised);
-  SDL_SaveBMP(denoised, "images/binarized.bmp");
-  printf("binarized.bmp\n");
-
+  
   // rotate image
 
-  double angle= 0;
   /*
+  double angle= 0;
+  
 
   printf("Enter rotation angle (degrees): ");
   if (scanf("%lf", &angle) != 1)
@@ -78,7 +79,7 @@ int main(int argc, char* argv[])
       SDL_FreeSurface(denoised);
       return 1;
   }
-  */
+  
 
   GError* error2 = NULL;
   GdkPixbuf* pixbuf2 = gdk_pixbuf_new_from_file("images/binarized.bmp",&error);
@@ -135,8 +136,8 @@ int main(int argc, char* argv[])
 
   free(blocks);
   free(letters);
-
-  SDL_FreeSurface(rotated_formatted);
+  */
+  //SDL_FreeSurface(rotated_formatted);
   SDL_FreeSurface(formatted);
   SDL_FreeSurface(denoised);
   
