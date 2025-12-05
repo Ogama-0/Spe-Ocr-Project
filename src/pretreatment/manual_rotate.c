@@ -1,3 +1,4 @@
+// #include "blocks_treatment.h"
 #include "manual_rotate.h"
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <math.h>
@@ -71,3 +72,19 @@ GdkPixbuf* rotate_pixbuf(GdkPixbuf* src, double angle_degrees) {
 
     return dst;
 }
+
+/*
+GdkPixbuf* automatic_rotate(SDL_Surface* surf, Uint8* image) {
+    int width = surf->w;
+    int height = surf->h;
+    size_t size = (size_t)(width*height);
+    int visited[height][width];
+    for (size_t i = 0; i < height; i++) {
+        for (size_t j = 0; j < width; j++) {
+            visited[i][j] = 0;
+        }
+    }
+
+    for (size_t )
+}
+*/

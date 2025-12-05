@@ -78,7 +78,7 @@ void binarize(SDL_Surface* surface)
   int height = surface->h;
   int width = surface->w;
 
-  int median = get_gray_mean(surface);
+  int mean = get_gray_mean(surface);
 
   for (int i = 0; i < height; i++)
   {
@@ -94,7 +94,7 @@ void binarize(SDL_Surface* surface)
 
       Uint8 gray = r;
 
-      if (gray >= median)
+      if (gray >= mean-15)
       {
         pixels[i*width+j] =
           SDL_MapRGBA(surface->format,255,255,255,a);
