@@ -53,17 +53,17 @@ int main(int argc, char* argv[])
   SDL_SaveBMP(formatted,"images/grayscale.bmp");
   printf("grayscale.bmp\n");
 
-  // binarize
-
-  binarize(formatted);
-  SDL_SaveBMP(formatted, "images/binarized.bmp");
-  printf("binarized.bmp\n");
-
   // denoise
 
   SDL_Surface* denoised = median_filter(formatted);
   SDL_SaveBMP(denoised, "images/denoised.bmp");
   printf("denoised.bmp\n");
+  
+  // binarize
+
+  binarize(denoised);
+  SDL_SaveBMP(denoised, "images/binarized.bmp");
+  printf("binarized.bmp\n");
   
   // rotate image
 
@@ -136,8 +136,9 @@ int main(int argc, char* argv[])
 
   free(blocks);
   free(letters);
+
+  SDL_FreeSurface(rotated_formatted);
   */
-  //SDL_FreeSurface(rotated_formatted);
   SDL_FreeSurface(formatted);
   SDL_FreeSurface(denoised);
   
