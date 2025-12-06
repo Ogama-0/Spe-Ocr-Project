@@ -42,9 +42,12 @@ void update_block(int x, int y, SDL_Rect** blocks,
 
     SDL_Rect b = get_block(surface,image,x,y,visited);
     // printf("density: %i\n",get_density(b,image,surface->w));
-    
-    (*blocks)[*size] = b;
-    (*size)++;
+
+    if (b.w > 3 && b.h > 3)
+    {
+      (*blocks)[*size] = b;
+      (*size)++;
+    }
   }
 }
 

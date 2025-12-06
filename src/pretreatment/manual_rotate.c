@@ -1,4 +1,5 @@
-// #include "blocks_treatment.h"
+#include <SDL2/SDL.h>
+#include "blocks_treatment.h"
 #include "manual_rotate.h"
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <math.h>
@@ -67,7 +68,7 @@ GdkPixbuf* rotate_pixbuf(GdkPixbuf* src, double angle_degrees) {
             } else {
                 // PIxel out of place: black or transparent
                 for (int c = 0; c < channels; c++) {
-                    dst_pixel[c] = 0;
+                    dst_pixel[c] = 255;
                 }
             }
         }
@@ -76,18 +77,117 @@ GdkPixbuf* rotate_pixbuf(GdkPixbuf* src, double angle_degrees) {
     return dst;
 }
 
-/*
-GdkPixbuf* automatic_rotate(SDL_Surface* surf, Uint8* image) {
-    int width = surf->w;
-    int height = surf->h;
-    size_t size = (size_t)(width*height);
-    int visited[height][width];
-    for (size_t i = 0; i < height; i++) {
-        for (size_t j = 0; j < width; j++) {
-            visited[i][j] = 0;
+void proj_horizontal(guchar* pixels,double* proj,int width,int height)
+{
+    for (int i = 0; i < height; i++)
+    {
+        double sum = 0;
+        for (int j = 0; j < width; j++)
+        {
+            int line = pixels[i*width+j];
+            if (line == 0) sum++;
+        }
+        proj[i] = sum;
+    }
+}
+
+void proj_vertical(guchar* pixels,double* proj,int width,int height)
+{
+    for (int i = 0; i < width; i++)
+    {
+        double sum = 0;
+        for (int j = 0; j < height; j++)
+        {
+            int col = pixels[j*width+i];
+            if (col == 0) sum++;
+        }
+        proj[i] = sum;
+    }
+}
+
+double score(const double* proj1,const double* proj2,int width,int height)
+{
+    size_t size1 = 0;
+    size_t size2 = 0;
+
+    double proj1_tmp[width];
+    double proj2_tmp[height];
+
+    for (int i = 0; i < width; i++)
+    {
+        if (proj1[i] > 10)
+        {
+            proj1_tmp[size1] = proj1[i];
+            size1++;
+        }
+    }
+    for (int j = 0; j < height; j++)
+    {
+        if (proj2[j] > 10)
+        {
+            proj2_tmp[size2] = proj2[j];
+            size2++;
         }
     }
 
-    for (size_t )
+    double mean1 = 0;
+    double mean2 = 0;
+    for (size_t i = 0; i < size1; i++)
+    {
+        mean1 += proj1_tmp[i];
+    }
+    mean1 /= (size1+1);
+    for (size_t j = 0;j < size2;j++)
+    {
+        mean2 += proj2_tmp[j];
+    }
+    mean2 /= (size2+1);
+
+    return mean1+mean2;
 }
-*/
+
+GdkPixbuf* automatic_rotate(GdkPixbuf* pixbuf) {
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+
+    double max_score = -1;
+
+    GdkPixbuf** max = malloc(sizeof(GdkPixbuf*));
+    *max = NULL;
+
+    const double min_thresh = -30.0;
+    const double max_thresh = 30.0;
+
+    for (int i = min_thresh; i <= max_thresh; i++)
+    {
+        GdkPixbuf* rotated = rotate_pixbuf(pixbuf,(double)i);
+        guchar* pixels = gdk_pixbuf_get_pixels(rotated);
+
+        double proj2[height];
+        double proj1[width];
+        proj_vertical(pixels,proj1,width,height);
+        proj_horizontal(pixels,proj2,width,height);
+        
+        double s = score(proj1,proj2,width,height);
+
+        if (s > max_score)
+        {
+            if (max_score > -1.0)
+            {
+                g_object_unref(*max);
+            }
+            max_score = s;
+            *max = rotated;
+        }
+        else
+        {
+            g_object_unref(rotated);
+        }
+    }
+
+    GdkPixbuf* res = *max;
+    free(max);
+
+    return res;
+}
+
