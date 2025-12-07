@@ -117,20 +117,26 @@ int main(int argc, char* argv[])
                                       SDL_PIXELFORMAT_RGBA8888,0);
   SDL_FreeSurface(rotated);
 
+  binarize(rotated_formatted);
+
   int height = rotated_formatted->h;
   int width = rotated_formatted->w;
 
   Uint8 res[height*width];
   formatting_binarized(rotated_formatted,res);
 
+  // print_formatted_bin(res,width,height);
+
   size_t size_blocks = 0;
   size_t size_letters = 0;
+  int m_height = 0;
   SDL_Rect* blocks = get_blocks(rotated_formatted,res,&size_blocks);
-  SDL_Rect* letters = get_letter_blocks(blocks,size_blocks,res,width,&size_letters);
+  SDL_Rect* letters = get_letter_blocks(blocks,size_blocks,&m_height,
+                                        res,width,&size_letters);
 
   printf("nb of letters in main: %zu\n",size_letters);
   
-  save_blocks(rotated_formatted,letters,size_letters);
+  save_blocks(rotated_formatted,letters,m_height,size_letters);
   printf("Blocks saved in 'blocks/' folder.\n");
 
   free(blocks);

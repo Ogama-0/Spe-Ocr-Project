@@ -41,10 +41,10 @@ void update_block(int x, int y, SDL_Rect** blocks,
     }
 
     SDL_Rect b = get_block(surface,image,x,y,visited);
-    // printf("density: %i\n",get_density(b,image,surface->w));
 
-    if (b.w > 3 && b.h > 3)
+    if (b.w >= 3 && b.h > 3)
     {
+      // printf("density: x:%i y:%i\n",b.x,b.y);
       (*blocks)[*size] = b;
       (*size)++;
     }
@@ -226,13 +226,14 @@ int get_median_height(SDL_Rect* blocks,size_t size)
   int height_map[size];
   for (size_t i = 0; i < size; i++) {
     height_map[i] = blocks[i].h;
+    // printf("height num %zu: %i\n",i,blocks[i].h);
   }
 
   qsort(height_map,(int)size,sizeof(int),compare);
   printf("median height: ");
 
   if (size%2 == 0) {
-    int m1 = (height_map[size/2-1]+height_map[size/2]);
+    int m1 = (height_map[size/2-1]+height_map[size/2])/2;
     printf("%i\n",m1);
     return m1;
   } else {
@@ -244,13 +245,14 @@ int get_median_height(SDL_Rect* blocks,size_t size)
 
 // with the median of the density, get every block that
 // represents a letter.
-SDL_Rect* get_letter_blocks(SDL_Rect* blocks,size_t size,
+SDL_Rect* get_letter_blocks(SDL_Rect* blocks,size_t size,int* m_height,
                             Uint8* image,int width,size_t* nb_letters)
 {
   int density_median = get_density_median(blocks,size,image,width);
   int height_median = get_median_height(blocks,size);
+  *m_height = height_median;
   int thresh_min = density_median/4, thresh_max = density_median*4;
-  int thresh_min_h = height_median/2, thresh_max_h = height_median*3/2;
+  int thresh_min_h = height_median/4, thresh_max_h = height_median*3/2;
   printf("density thresholds: %i %i\n",thresh_min,thresh_max);
   printf("height thresholds: %i %i\n",thresh_min_h,thresh_max_h);
   
@@ -319,7 +321,7 @@ void sort_blocks(SDL_Rect* blocks,size_t size) {
   while (i < size) {
     size_t j = i-1;
     size_t s_tmp = 1;
-    while (i < size && abs(blocks[i].y-blocks[i-1].y)<5) {
+    while (i < size && abs(blocks[i].y-blocks[i-1].y)<10) {
       s_tmp++;
       i++;
     }
@@ -334,8 +336,9 @@ void sort_blocks(SDL_Rect* blocks,size_t size) {
 // We decide which is which in the save_blocks function.
 void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
               struct Image_zone* set2,size_t* s2,size_t* cap2,
-              SDL_Rect* blocks,size_t size) {
+              SDL_Rect* blocks,size_t size,int median_height) {
   size_t i = 0;
+  printf("distance threshold: %i\n",2*median_height);
   while (i < size) {
 
     if (*s1 == 0) {
@@ -351,7 +354,7 @@ void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
 
       (*s1)++;
 
-    } else if (get_dist_blocks(*set1,blocks[i]) < 50) {
+    } else if (get_dist_blocks(*set1,blocks[i]) <= median_height*2) {
 
       set1->blocks[*s1] = blocks[i];
 
@@ -416,7 +419,8 @@ void get_sets(struct Image_zone* set1,size_t* s1,size_t* cap1,
 }
 
 // save each block into an image with bmp format.
-void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
+void save_blocks(SDL_Surface* surface,SDL_Rect* letters,
+                 int m_height,size_t size)
 {
   size_t cap1 = 4;
   size_t cap2 = 4;
@@ -429,6 +433,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   struct Image_zone set2 = {blocks2,0,0,0,0,0,0};
 
   sort_blocks(letters,size);
+
   /*
   for (size_t i = 0; i < size; i++) {
     printf("%i %i\n",letters[i].y,letters[i].x);
@@ -436,7 +441,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   */
   
   get_sets(&set1,&s1,&cap1, &set2,&s2,&cap2,
-           letters,size);
+           letters,size,m_height);
 
   struct Image_zone grid;
   struct Image_zone words;
@@ -466,6 +471,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   printf("nb of columns and rows of words: %i %i\n",words.nb_col,words.nb_rows);
   printf("%i %i - %i %i\n\n",words.x_min,words.x_max,words.y_min,words.y_max);
 
+  
   size_t fdg = 0;
   size_t gdf = 0;
   while (fdg < size_grid && gdf < size_words) {
@@ -480,6 +486,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
     printf("             word: %i %i\n",words.blocks[gdf].x,words.blocks[gdf].y);
     gdf++;
   }
+  
 
   // Save the grid's letters in bmp images
   for (size_t i = 0; i < (size_t)grid.nb_rows; i++) {
@@ -530,7 +537,7 @@ void save_blocks(SDL_Surface* surface,SDL_Rect* letters,size_t size)
   while (i < size_words) {
     size_t j = i-1;
     size_t size_row = 1;
-    while (i < size_words && abs(words.blocks[i].y-words.blocks[i-1].y) < 5) {
+    while (i < size_words && abs(words.blocks[i].y-words.blocks[i-1].y) < 10) {
       i++;
       size_row++;
     }
