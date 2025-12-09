@@ -1,6 +1,6 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #define MAX_LIGNES 100
 #define MAX_COLS 100
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
-    
+
     char grille[MAX_LIGNES][MAX_COLS];
     int nb_lignes = 0;
     int nb_colonnes = 0;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             if (grille[y][x] == mot[0])
             {
                 int ok = 1;
-                for (int k = 1; k < taille_mot; k++)    // droite
+                for (int k = 1; k < taille_mot; k++) // droite
                 {
                     if (x + k >= nb_colonnes || grille[y][x + k] != mot[k])
                     {
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
                 if (!trouve)
                 {
                     ok = 1;
-                    for (int k = 1; k < taille_mot; k++) 		// gauche
+                    for (int k = 1; k < taille_mot; k++) // gauche
                     {
                         if (x - k < 0 || grille[y][x - k] != mot[k])
                         {
@@ -110,7 +110,8 @@ int main(int argc, char *argv[])
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (y + k >= nb_lignes || grille[y + k][x] != mot[k])		//Bas
+                        if (y + k >= nb_lignes ||
+                            grille[y + k][x] != mot[k]) // Bas
                         {
                             ok = 0;
                             break;
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)			//haut
+                if (!trouve) // haut
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -147,12 +148,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)		// en bas a droite
+                if (!trouve) // en bas a droite
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x + k >= nb_colonnes || y + k >= nb_lignes || grille[y + k][x + k] != mot[k])
+                        if (x + k >= nb_colonnes || y + k >= nb_lignes ||
+                            grille[y + k][x + k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -168,12 +170,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)				// haut -gauche
+                if (!trouve) // haut -gauche
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x - k < 0 || y - k < 0 || grille[y - k][x - k] != mot[k])
+                        if (x - k < 0 || y - k < 0 ||
+                            grille[y - k][x - k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -189,12 +192,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)		//bas gauche
+                if (!trouve) // bas gauche
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x - k < 0 || y + k >= nb_lignes || grille[y + k][x - k] != mot[k])
+                        if (x - k < 0 || y + k >= nb_lignes ||
+                            grille[y + k][x - k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -210,12 +214,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)			//haut droite
+                if (!trouve) // haut droite
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x + k >= nb_colonnes || y - k < 0 || grille[y - k][x + k] != mot[k])
+                        if (x + k >= nb_colonnes || y - k < 0 ||
+                            grille[y - k][x + k] != mot[k])
                         {
                             ok = 0;
                             break;
