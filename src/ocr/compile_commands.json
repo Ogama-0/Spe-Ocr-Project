@@ -1,0 +1,23 @@
+[
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "main.o",
+      "main.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/main.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/main.o"
+  }
+]
