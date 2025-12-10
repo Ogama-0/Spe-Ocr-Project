@@ -7,30 +7,36 @@
 
       forAllSystems =
         genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
-      forAllPkgs = function: forAllSystems (system: function pkgs.${system});
 
       pkgs = forAllSystems (system:
-        (import nixpkgs {
+        import nixpkgs {
           inherit system;
           overlays = [ ];
-        }));
+        });
     in {
-      formatter = forAllPkgs (pkgs: pkgs.nixpkgs-fmt);
+      formatter = forAllSystems (system: pkgs.${system}.nixpkgs-fmt);
 
-      devShells = forAllPkgs (pkgs:
-        with pkgs.lib;
-        let mkClangShell = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; };
+      devShells = forAllSystems (system:
+        let
+          pkgsForSystem = pkgs.${system};
+          lib = pkgsForSystem.lib;
+          mkClangShell = pkgsForSystem.mkShell.override {
+            stdenv = pkgsForSystem.clangStdenv;
+          };
         in {
           default = mkClangShell rec {
-            nativeBuildInputs = with pkgs;
-              [ clang-tools ] ++ (with llvmPackages; [ clang lldb ]);
+            nativeBuildInputs = with pkgsForSystem;
+              [ clang-tools pkg-config ] ++ (with llvmPackages; [ clang lldb ]);
 
-            buildInputs = with pkgs;
-              [
-                #futurs libs uses by the project
-              ];
+            buildInputs = with pkgsForSystem; [
+              SDL2
+              # sdl3
+              gdk-pixbuf
+              gdk-pixbuf.dev
+            ];
 
-            LD_LIBRARY_PATH = makeLibraryPath buildInputs;
+            LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
+            PKG_CONFIG_PATH = lib.makeSearchPath "lib/pkgconfig" buildInputs;
           };
         });
     };
