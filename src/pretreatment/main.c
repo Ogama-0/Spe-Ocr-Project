@@ -1,13 +1,19 @@
-#include "binarize.h"
-#include "blocks_treatment.h"
-#include "denoise.h"
-#include "err.h"
-#include "manual_rotate.h"
 #include <SDL2/SDL.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include "manual_rotate.h"
+#include "denoise.h"
+#include "blocks_treatment.h"
+#include "err.h"
+#include "binarize.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+
+static void destroy_notify(guchar *pixels, gpointer data)
+{
+    SDL_Surface *surf = (SDL_Surface*)data;
+    SDL_FreeSurface(surf);
+}
 
 // main function to call every other ones.
 int main(int argc, char *argv[])
@@ -137,6 +143,18 @@ int main(int argc, char *argv[])
 
     // print_formatted_bin(res,width,height);
 
+    GdkPixbuf *cpy_of_rot = gdk_pixbuf_new_from_data(
+        (guchar*)rotated_formatted->pixels,
+        GDK_COLORSPACE_RGB,
+        TRUE,
+        8,
+        rotated_formatted->w,
+        rotated_formatted->h,
+        rotated_formatted->pitch,
+        destroy_notify,
+        rotated_formatted
+    );
+
     size_t size_blocks = 0;
     size_t size_letters = 0;
     int m_height = 0;
@@ -146,13 +164,14 @@ int main(int argc, char *argv[])
 
     printf("nb of letters in main: %zu\n", size_letters);
 
-    save_blocks(rotated_formatted, letters, m_height, size_letters);
+    save_blocks(rotated_formatted, letters, m_height, size_letters,
+                cpy_of_rot);
     printf("Blocks saved in 'blocks/' folder.\n");
 
     free(blocks);
     free(letters);
 
-    SDL_FreeSurface(rotated_formatted);
+    g_object_unref(cpy_of_rot);
     SDL_FreeSurface(formatted);
     SDL_FreeSurface(denoised);
 
