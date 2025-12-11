@@ -107,6 +107,47 @@ void binarize(SDL_Surface *surface)
     }
 }
 
+void binarize_letters(GdkPixbuf* pixbuf)
+{
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    for (int y = 0; y < height; y++)
+    {
+        guchar *p = pixels + y * rowstride;
+        for (int x = 0; x < width; x++)
+        {
+            guchar r = p[0];
+            guchar g = p[1];
+            guchar b = p[2];
+
+            if (r == 255 && g == 255 && b == 255)
+            {
+                p[0] = 0;
+                p[1] = 0;
+                p[2] = 0;
+            }
+
+            else
+            {
+                p[0] = 255;
+                p[1] = 255;
+                p[2] = 255;
+            }
+
+            if (n_channels == 4)
+            {
+                p[3] = 255;
+            }
+
+            p += n_channels;
+        }
+    }
+}
+
 int is_black(Uint32 pixel)
 {
     if (pixel <= 255)

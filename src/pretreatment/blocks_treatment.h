@@ -17,7 +17,7 @@ SDL_Rect* get_letter_blocks(SDL_Rect* blocks,size_t size,int* m_height,
 int get_density(SDL_Rect block,Uint8* image,int width);
 
 void save_blocks(SDL_Surface* surface,SDL_Rect* blocks,int m_height,
-                 size_t size);
+                 size_t size,GdkPixbuf* pixbuf);
 
 struct Point {
   int x;

@@ -1,9 +1,11 @@
-#include "blocks_treatment.h"
-#include "err.h"
 #include <SDL2/SDL.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include "blocks_treatment.h"
+#include "err.h"
+#include "pixbuf_scale.h"
 
 // for a black pixel, check if it's an existing block.
 // If not, create a new block.
@@ -460,7 +462,7 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
 
 // save each block into an image with bmp format.
 void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
-                 size_t size)
+                 size_t size,GdkPixbuf* pixbuf)
 {
     size_t cap1 = 4;
     size_t cap2 = 4;
@@ -571,11 +573,10 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
                 printf("error on blitting surface: %s\n", SDL_GetError());
             }
 
-            char filename[64];
-            // save a name with a different index every time.
-            snprintf(filename, sizeof(filename),
-                     "blocks/grid/letter %zu %zu.bmp", i, j);
-            SDL_SaveBMP(surf, filename);
+            save_pixbuf_scale(pixbuf,
+                              &(grid.blocks[((size_t)grid.nb_col)*i + j]),
+                              i,j,1);
+            
             SDL_FreeSurface(surf);
         }
     }
@@ -629,11 +630,9 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
 
             printf("saving image...\n");
 
-            char filename[64];
-            // save a name with a different index every time.
-            snprintf(filename, sizeof(filename),
-                     "blocks/words/letter %i %zu.bmp", words_count, k - j);
-            SDL_SaveBMP(surf, filename);
+            save_pixbuf_scale(pixbuf,&(words.blocks[k]),
+                              (size_t)words_count,k-j,0);
+
             SDL_FreeSurface(surf);
         }
         words_count++;
