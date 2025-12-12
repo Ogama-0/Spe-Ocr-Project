@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +8,8 @@
 
 // for a black pixel, check if it's an existing block.
 // If not, create a new block.
-void update_block(int x, int y, SDL_Rect **blocks, size_t *size,
-                  size_t *capacity, SDL_Surface *surface, int **visited,
+void update_block(int x, int y, struct Rect **blocks, size_t *size,
+                  size_t *capacity, GdkPixbuf* pixbuf, int **visited,
                   Uint8 *image)
 {
     int exists = 0;
@@ -34,7 +33,7 @@ void update_block(int x, int y, SDL_Rect **blocks, size_t *size,
         {
             // modify the size of the blocks array if we exceed the
             // capacity.
-            *blocks = realloc(*blocks, (*capacity) * 2 * sizeof(SDL_Rect));
+            *blocks = realloc(*blocks, (*capacity) * 2 * sizeof(struct Rect));
             if (*blocks == NULL)
             {
                 printf("error on reallocing\n");
@@ -42,7 +41,7 @@ void update_block(int x, int y, SDL_Rect **blocks, size_t *size,
             (*capacity) *= 2;
         }
 
-        SDL_Rect b = get_block(surface, image, x, y, visited);
+        struct Rect b = get_block(pixbuf, image, x, y, visited);
 
         if (b.w >= 3 && b.h > 3)
         {
@@ -55,11 +54,11 @@ void update_block(int x, int y, SDL_Rect **blocks, size_t *size,
 
 // get a block using a propagation algorithm, from a black pixel belonging
 // to the block.
-SDL_Rect get_block(SDL_Surface *surface, Uint8 *image, int x, int y,
+struct Rect get_block(GdkPixbuf *pixbuf, Uint8 *image, int x, int y,
                    int **visited)
 {
-    int w = surface->w;
-    int h = surface->h;
+    int w = gdk_pixbuf_get_width(pixbuf);
+    int h = gdk_pixbuf_get_height(pixbuf);
 
     struct Point *stack = malloc(w * h * sizeof(struct Point));
     int top = 0;
@@ -102,7 +101,7 @@ SDL_Rect get_block(SDL_Surface *surface, Uint8 *image, int x, int y,
 
     free(stack);
 
-    SDL_Rect rect;
+    struct Rect rect;
     rect.x = min_x;
     rect.y = min_y;
     rect.w = max_x - min_x + 1;
@@ -111,18 +110,18 @@ SDL_Rect get_block(SDL_Surface *surface, Uint8 *image, int x, int y,
 }
 
 // for every black pixel encountered, call the update_block function.
-SDL_Rect *get_blocks(SDL_Surface *surface, Uint8 *image, size_t *size)
+struct Rect *get_blocks(GdkPixbuf* pixbuf, Uint8 *image, size_t *size)
 {
     size_t capacity = 4;
     // create the array of blocks.
-    SDL_Rect *blocks = malloc(capacity * sizeof(SDL_Rect));
+    struct Rect *blocks = malloc(capacity * sizeof(struct Rect));
     if (blocks == NULL)
     {
         printf("error on mallocing\n");
     }
 
-    int height = surface->h;
-    int width = surface->w;
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int width = gdk_pixbuf_get_width(pixbuf);
     // Uint32* pixels = surface->pixels;
 
     // create the array with the visited pixels.
@@ -146,7 +145,7 @@ SDL_Rect *get_blocks(SDL_Surface *surface, Uint8 *image, size_t *size)
         {
             if (image[i * width + j])
             {
-                update_block(j, i, &blocks, size, &capacity, surface, visited,
+                update_block(j, i, &blocks, size, &capacity, pixbuf, visited,
                              image);
             }
         }
@@ -162,7 +161,7 @@ SDL_Rect *get_blocks(SDL_Surface *surface, Uint8 *image, size_t *size)
 }
 
 // get the amount of black pixels in a block.
-int get_density(SDL_Rect block, Uint8 *image, int width)
+int get_density(struct Rect block, Uint8 *image, int width)
 {
     int i = block.x;
     int density = 0;
@@ -185,7 +184,7 @@ int get_density(SDL_Rect block, Uint8 *image, int width)
 }
 
 // get the density of every block in the image.
-int *density_map(SDL_Rect *blocks, size_t size, Uint8 *image, int width)
+int *density_map(struct Rect *blocks, size_t size, Uint8 *image, int width)
 {
     int *map = malloc(size * sizeof(int));
     for (size_t i = 0; i < size; i++)
@@ -200,7 +199,7 @@ int compare(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 // get the median of the density. To do that, do a quick sort
 // with the density_map array and return the middle element or
 // the mean of the two middles if the number of elements is even.
-int get_density_median(SDL_Rect *blocks, size_t size, Uint8 *image, int width)
+int get_density_median(struct Rect *blocks, size_t size, Uint8 *image, int width)
 {
     int *map = density_map(blocks, size, image, width);
 
@@ -223,7 +222,7 @@ int get_density_median(SDL_Rect *blocks, size_t size, Uint8 *image, int width)
     }
 }
 
-int get_median_height(SDL_Rect *blocks, size_t size)
+int get_median_height(struct Rect *blocks, size_t size)
 {
     int height_map[size];
     for (size_t i = 0; i < size; i++)
@@ -251,7 +250,7 @@ int get_median_height(SDL_Rect *blocks, size_t size)
 
 // with the median of the density, get every block that
 // represents a letter.
-SDL_Rect *get_letter_blocks(SDL_Rect *blocks, size_t size, int *m_height,
+struct Rect *get_letter_blocks(struct Rect *blocks, size_t size, int *m_height,
                             Uint8 *image, int width, size_t *nb_letters)
 {
     int density_median = get_density_median(blocks, size, image, width);
@@ -263,7 +262,7 @@ SDL_Rect *get_letter_blocks(SDL_Rect *blocks, size_t size, int *m_height,
     printf("height thresholds: %i %i\n", thresh_min_h, thresh_max_h);
 
     *nb_letters = 0;
-    SDL_Rect *letters = malloc(size * sizeof(SDL_Rect));
+    struct Rect *letters = malloc(size * sizeof(struct Rect));
 
     for (size_t i = 0; i < size; i++)
     {
@@ -287,7 +286,7 @@ SDL_Rect *get_letter_blocks(SDL_Rect *blocks, size_t size, int *m_height,
     return letters;
 }
 
-int get_dist_blocks(struct Image_zone b1, SDL_Rect b2)
+int get_dist_blocks(struct Image_zone b1, struct Rect b2)
 {
     int x_diff;
     int y_diff;
@@ -319,21 +318,21 @@ int get_dist_blocks(struct Image_zone b1, SDL_Rect b2)
 
 int compare_blocks_y(const void *a, const void *b)
 {
-    return (((SDL_Rect *)a)->y - ((SDL_Rect *)b)->y);
+    return (((struct Rect*)a)->y - ((struct Rect *)b)->y);
 }
 
 int compare_blocks_x(const void *a, const void *b)
 {
-    return (((SDL_Rect *)a)->x - ((SDL_Rect *)b)->x);
+    return (((struct Rect *)a)->x - ((struct Rect *)b)->x);
 }
 
 // this function first sorts every letter by their
 // y coords. Then every group of letters with approximately
 // the same y coords is sorted by their x coords.
-void sort_blocks(SDL_Rect *blocks, size_t size)
+void sort_blocks(struct Rect *blocks, size_t size)
 {
 
-    qsort(blocks, size, sizeof(SDL_Rect), compare_blocks_y);
+    qsort(blocks, size, sizeof(struct Rect), compare_blocks_y);
 
     size_t i = 1;
     while (i < size)
@@ -346,7 +345,7 @@ void sort_blocks(SDL_Rect *blocks, size_t size)
             i++;
         }
 
-        qsort(blocks + j, s_tmp, sizeof(SDL_Rect), compare_blocks_x);
+        qsort(blocks + j, s_tmp, sizeof(struct Rect), compare_blocks_x);
         i++;
     }
 }
@@ -356,7 +355,7 @@ void sort_blocks(SDL_Rect *blocks, size_t size)
 // We decide which is which in the save_blocks function.
 void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
               struct Image_zone *set2, size_t *s2, size_t *cap2,
-              SDL_Rect *blocks, size_t size, int median_height)
+              struct Rect *blocks, size_t size, int median_height)
 {
     size_t i = 0;
     printf("distance threshold: %i\n", 2 * median_height);
@@ -401,7 +400,7 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
             {
                 (*cap1) *= 2;
                 set1->blocks =
-                    realloc(set1->blocks, sizeof(SDL_Rect) * (*cap1));
+                    realloc(set1->blocks, sizeof(struct Rect) * (*cap1));
             }
 
             (*s1)++;
@@ -450,7 +449,7 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
                 {
                     *cap2 *= 2;
                     set2->blocks =
-                        realloc(set2->blocks, sizeof(SDL_Rect) * (*cap2));
+                        realloc(set2->blocks, sizeof(struct Rect) * (*cap2));
                 }
 
                 (*s2)++;
@@ -461,7 +460,7 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
 }
 
 // save each block into an image with bmp format.
-void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
+void save_blocks(struct Rect *letters, int m_height,
                  size_t size,GdkPixbuf* pixbuf)
 {
     size_t cap1 = 4;
@@ -469,8 +468,8 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
     size_t s1 = 0;
     size_t s2 = 0;
 
-    SDL_Rect *blocks1 = malloc(sizeof(SDL_Rect) * cap1);
-    SDL_Rect *blocks2 = malloc(sizeof(SDL_Rect) * cap2);
+    struct Rect *blocks1 = malloc(sizeof(struct Rect) * cap1);
+    struct Rect *blocks2 = malloc(sizeof(struct Rect) * cap2);
     struct Image_zone set1 = {blocks1, 0, 0, 0, 0, 0, 0};
     struct Image_zone set2 = {blocks2, 0, 0, 0, 0, 0, 0};
 
@@ -507,6 +506,7 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
         size_words = s1;
     }
 
+    /*
     printf("size of grid: %zu\n", size_grid);
     printf("nb of columns and rows of grid: %i %i\n", grid.nb_col,
            grid.nb_rows);
@@ -538,46 +538,19 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
                words.blocks[gdf].y);
         gdf++;
     }
+    */
 
     // Save the grid's letters in bmp images
     for (size_t i = 0; i < (size_t)grid.nb_rows; i++)
     {
         for (size_t j = 0; j < (size_t)grid.nb_col; j++)
         {
-            SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(
-                0, grid.blocks[((size_t)grid.nb_col) * i + j].w,
-                grid.blocks[((size_t)grid.nb_col) * i + j].h,
-                surface->format->BitsPerPixel, SDL_PIXELFORMAT_RGBA8888);
-
             // printf("Bloc %zu: x=%d y=%d w=%d
             // h=%d\n",i,blocks[i].x,blocks[i].y, blocks[i].w,blocks[i].h);
-
-            if (!surf)
-            {
-                printf("error on surfacing block n°%zu: %s\n", i,
-                       SDL_GetError());
-                free(grid.blocks);
-                free(words.blocks);
-                SDL_FreeSurface(surf);
-                return;
-            }
-
-            // fills the image with red if it doesn't work
-            // SDL_FillRect(surf, NULL, SDL_MapRGB(surf->format, 255, 0, 0));
-
-            // fills the surface with a portion of the original surface.
-            if (SDL_BlitSurface(surface,
-                                &(grid.blocks[((size_t)grid.nb_col) * i + j]),
-                                surf, NULL) != 0)
-            {
-                printf("error on blitting surface: %s\n", SDL_GetError());
-            }
 
             save_pixbuf_scale(pixbuf,
                               &(grid.blocks[((size_t)grid.nb_col)*i + j]),
                               i,j,1);
-            
-            SDL_FreeSurface(surf);
         }
     }
     free(grid.blocks);
@@ -603,37 +576,15 @@ void save_blocks(SDL_Surface *surface, SDL_Rect *letters, int m_height,
 
         for (size_t k = j; k < j + size_row; k++)
         {
-            SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(
-                0, words.blocks[k].w, words.blocks[k].h,
-                surface->format->BitsPerPixel, SDL_PIXELFORMAT_RGBA8888);
-
             // printf("Bloc %zu: x=%d y=%d w=%d
             // h=%d\n",i,blocks[i].x,blocks[i].y, blocks[i].w,blocks[i].h);
-
-            if (!surf)
-            {
-                printf("error on surfacing word block n°%zu: %s\n", j,
-                       SDL_GetError());
-                free(words.blocks);
-                SDL_FreeSurface(surf);
-                return;
-            }
-
             // fills the image with red if it doesn't work
             // SDL_FillRect(surf, NULL, SDL_MapRGB(surf->format, 255, 0, 0));
-
             // fills the surface with a portion of the original surface.
-            if (SDL_BlitSurface(surface, &(words.blocks[k]), surf, NULL) != 0)
-            {
-                printf("error on blitting surface: %s\n", SDL_GetError());
-            }
-
             printf("saving image...\n");
 
             save_pixbuf_scale(pixbuf,&(words.blocks[k]),
                               (size_t)words_count,k-j,0);
-
-            SDL_FreeSurface(surf);
         }
         words_count++;
         i++;

@@ -1,9 +1,11 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include <SDL2/SDL.h>
+#include <stdlib.h>
+#include "blocks_treatment.h"
 #include "pixbuf_scale.h"
 #include "binarize.h"
+#include <stdio.h>
 
-void save_pixbuf_scale(GdkPixbuf* pixbuf,SDL_Rect* rect,size_t i1, size_t i2,
+void save_pixbuf_scale(GdkPixbuf* pixbuf,struct Rect* rect,size_t i1, size_t i2,
                        int is_grid)
 {
   int size = rect->w > rect->h ? rect->w : rect->h;
@@ -57,7 +59,7 @@ void save_pixbuf_scale(GdkPixbuf* pixbuf,SDL_Rect* rect,size_t i1, size_t i2,
 
   char filename[64];
   snprintf(filename,sizeof(filename),
-           "%sletter %s %s.bmp",dir,i1_c,i2_c);
+           "%sletter %s %s.png",dir,i1_c,i2_c);
 
   GError *error = NULL;
   gboolean ok = gdk_pixbuf_save(
