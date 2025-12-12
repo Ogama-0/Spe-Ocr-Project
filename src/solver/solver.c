@@ -1,23 +1,19 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include "solver.h"
 
 #define MAX_LIGNES 100
 #define MAX_COLS 100
 
-int main(int argc, char *argv[])
+int solve_word(char* grid, char* word)
 {
-    if (argc != 3)
-    {
-        return 1;
-    }
-
     char grille[MAX_LIGNES][MAX_COLS];
     int nb_lignes = 0;
     int nb_colonnes = 0;
     char ligne[MAX_COLS];
 
-    FILE *fichier = fopen(argv[1], "r");
+    FILE *fichier = fopen(grid, "r");
     if (fichier == NULL)
     {
         printf("impossible d'ouvrir le fichier.\n");
@@ -49,7 +45,7 @@ int main(int argc, char *argv[])
     fclose(fichier);
 
     char mot[100];
-    strcpy(mot, argv[2]);
+    strcpy(mot, word);
     for (int i = 0; mot[i] != '\0'; i++)
     {
         mot[i] = toupper(mot[i]);

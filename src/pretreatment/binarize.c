@@ -124,7 +124,7 @@ void binarize_letters(GdkPixbuf* pixbuf)
             guchar g = p[1];
             guchar b = p[2];
 
-            if (r == 255 && g == 255 && b == 255)
+            if (r > 200 && g > 200 && b > 200)
             {
                 p[0] = 0;
                 p[1] = 0;
