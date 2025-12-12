@@ -2,6 +2,11 @@
 
 #define DETECT_BLOCKS_H
 
+struct Rect {
+  int x; int y;
+  int w; int h;
+};
+
 void update_block(int x, int y, SDL_Rect** blocks,
                   size_t* size, size_t* capacity,
                   SDL_Surface* surface, int** visited, Uint8* image);

@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include "manual_rotate.h"
 #include "denoise.h"
