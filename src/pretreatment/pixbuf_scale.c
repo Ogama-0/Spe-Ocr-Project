@@ -44,39 +44,16 @@ void save_pixbuf_scale(GdkPixbuf* pixbuf,SDL_Rect* rect,size_t i1, size_t i2,
     dir = words;
   }
 
-  char i1_c[2];
-  char i2_c[2];
-  int i = 0;
-  int j = 0;
-  while (i < 2 && j < 2)
-  {
-    int tmp1 = (int)(i1/10);
+  char i1_c[3];
+  char i2_c[3];
 
-    int tmp2 = (int)(i2/10);
+  i1_c[0] = i1/10 + '0';
+  i1_c[1] = i1%10 + '0';
+  i1_c[2] = 0;
 
-    if (i == 0 && i1/10 == 0)
-    {
-      i1_c[i] = '0';
-      i++;
-    }
-    else
-    {
-      i1_c[i] = tmp1 + '0';
-      tmp1 = i1%10;
-      i++;
-    }
-    if (j == 0 && i2/10 == 0)
-    {
-      i2_c[j] = '0';
-      j++;
-    }
-    else
-    {
-      i2_c[j] = tmp2 + '0';
-      tmp2 = i2%10;
-      j++;
-    }
-  }
+  i2_c[0] = i2/10 + '0';
+  i2_c[1] = i2%10 + '0';
+  i2_c[2] = 0;
 
   char filename[64];
   snprintf(filename,sizeof(filename),

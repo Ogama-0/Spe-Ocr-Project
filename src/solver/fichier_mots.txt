@@ -1,0 +1,7 @@
+horizontal
+vertical
+diagonal
+epita
+god
+square
+benjamin
