@@ -1,12 +1,15 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include "../pretreatment/blocks_treatment.h"
 #include "solver.h"
 
 #define MAX_LIGNES 100
 #define MAX_COLS 100
 
-int solve_word(char* grid, char* word)
+void solve_word(char* grid, char* word, struct Rect* grid_blocks,
+                int* results)
 {
     char grille[MAX_LIGNES][MAX_COLS];
     int nb_lignes = 0;
@@ -17,7 +20,7 @@ int solve_word(char* grid, char* word)
     if (fichier == NULL)
     {
         printf("impossible d'ouvrir le fichier.\n");
-        return 1;
+        return;
     }
 
     while (fgets(ligne, sizeof(ligne), fichier))
@@ -246,12 +249,23 @@ int solve_word(char* grid, char* word)
 
     if (trouve)
     {
+        struct Rect begin = grid_blocks[nb_colonnes*y_debut+x_debut];
+        struct Rect end = grid_blocks[nb_colonnes*y_fin+x_fin];
+
+        results[0] = (begin.x+(begin.x+begin.w-1))/2;
+        results[1] = (begin.y+(begin.y+begin.h-1))/2;
+
+        results[2] = (end.x+(end.x+end.w-1))/2;
+        results[3] = (end.y+(end.y+end.h-1))/2;       
+        
         printf("(%d,%d)(%d,%d)\n", x_debut, y_debut, x_fin, y_fin);
     }
     else
     {
+        results[0] = 0;
+        results[1] = 0;
+        results[2] = 0;
+        results[3] = 0;
         printf("Not found\n");
     }
-
-    return 0;
 }

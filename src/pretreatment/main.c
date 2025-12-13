@@ -1,4 +1,5 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <stdint.h>
 #include "manual_rotate.h"
 #include "denoise.h"
 #include "blocks_treatment.h"
@@ -7,12 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-
-static void destroy_notify(guchar *pixels, gpointer data)
-{
-    SDL_Surface *surf = (SDL_Surface*)data;
-    SDL_FreeSurface(surf);
-}
+#include "../solver/solver.h"
 
 // main function to call every other ones.
 int main(int argc, char *argv[])
@@ -39,40 +35,51 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    g_object_unref(pixbuf);
-
-    SDL_Surface *load = SDL_LoadBMP("images/base_image.bmp");
-
-    if (load == NULL)
-    {
-        fprintf(stderr, "error on loading bmp: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Surface *formatted =
-        SDL_ConvertSurfaceFormat(load, SDL_PIXELFORMAT_RGBA8888, 0);
-    SDL_FreeSurface(load);
-
     struct stat st = {0};
     if (stat("blocks", &st) == -1)
         mkdir("blocks", 0700);
 
     // grayscale
 
-    grayscale(formatted);
-    SDL_SaveBMP(formatted, "images/grayscale.bmp");
+    grayscale(pixbuf);
+    if (!gdk_pixbuf_save(pixbuf, "images/grayscale.bmp", "bmp", &error, NULL))
+    {
+        fprintf(stderr, "Error on saving base image to bmp: %s\n",
+                error->message);
+        g_error_free(error);
+        g_object_unref(pixbuf);
+        return 1;
+    }
     printf("grayscale.bmp\n");
 
     // denoise
 
-    SDL_Surface *denoised = median_filter(formatted);
-    SDL_SaveBMP(denoised, "images/denoised.bmp");
+    GError* error2 = NULL;
+    GdkPixbuf* denoised = median_filter(pixbuf);
+    if (!gdk_pixbuf_save(denoised, "images/denoised.bmp", "bmp", &error2, NULL))
+    {
+        fprintf(stderr, "Error on saving base image to bmp: %s\n",
+                error2->message);
+        g_error_free(error2);
+        g_object_unref(pixbuf);
+        g_object_unref(denoised);
+        return 1;
+    }
     printf("denoised.bmp\n");
 
     // binarize
 
+    GError* error3 = NULL;
     binarize(denoised);
-    SDL_SaveBMP(denoised, "images/binarized.bmp");
+    if (!gdk_pixbuf_save(denoised, "images/binarized.bmp", "bmp", &error3, NULL))
+    {
+        fprintf(stderr, "Error on saving base image to bmp: %s\n",
+                error3->message);
+        g_error_free(error3);
+        g_object_unref(pixbuf);
+        g_object_unref(denoised);
+        return 1;
+    }
     printf("binarized.bmp\n");
 
     // rotate image
@@ -90,94 +97,68 @@ int main(int argc, char *argv[])
     }
     */
 
-    GError *error2 = NULL;
-    GdkPixbuf *pixbuf2 =
-        gdk_pixbuf_new_from_file("images/binarized.bmp", &error);
+    GError* error4 = NULL;
+    GdkPixbuf *rotated = automatic_rotate(denoised);
+    binarize(rotated);
 
-    if (pixbuf2 == NULL)
-    {
-        fprintf(stderr, "Error on loading from png: %s\n", error2->message);
-        g_error_free(error2);
-        return 1;
-    }
-
-    GdkPixbuf *pixbuf3 = automatic_rotate(pixbuf2);
-
-    if (!gdk_pixbuf_save(pixbuf3, "images/rotated.bmp", "bmp", &error2, NULL))
+    if (!gdk_pixbuf_save(rotated, "images/rotated.bmp", "bmp", &error4, NULL))
     {
         fprintf(stderr, "Error on saving base image to bmp: %s\n",
-                error2->message);
-        g_error_free(error2);
-        g_object_unref(pixbuf2);
-        g_object_unref(pixbuf3);
+                error4->message);
+        g_error_free(error4);
+        g_object_unref(pixbuf);
+        g_object_unref(denoised);
+        g_object_unref(rotated);
         return 1;
     }
-
-    g_object_unref(pixbuf2);
-    g_object_unref(pixbuf3);
 
     printf("rotated.bmp\n");
 
     // get blocks
 
-    SDL_Surface *rotated = SDL_LoadBMP("images/rotated.bmp");
+    int height = gdk_pixbuf_get_height(rotated);
+    int width = gdk_pixbuf_get_width(rotated);
 
-    if (rotated == NULL)
-    {
-        fprintf(stderr, "Error on loading rotated image: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Surface *rotated_formatted =
-        SDL_ConvertSurfaceFormat(rotated, SDL_PIXELFORMAT_RGBA8888, 0);
-    SDL_FreeSurface(rotated);
-
-    binarize(rotated_formatted);
-
-    int height = rotated_formatted->h;
-    int width = rotated_formatted->w;
-
-    Uint8 res[height * width];
-    formatting_binarized(rotated_formatted, res);
+    uint8_t res[height * width];
+    formatting_binarized(rotated, res);
 
     // print_formatted_bin(res,width,height);
 
+    /*
     GdkPixbuf *cpy_of_rot = gdk_pixbuf_new_from_data(
-        (guchar*)rotated_formatted->pixels,
+        gdk_pixbuf_get_pixels(rotated),
         GDK_COLORSPACE_RGB,
         TRUE,
         8,
-        rotated_formatted->w,
-        rotated_formatted->h,
-        rotated_formatted->pitch,
-        destroy_notify,
-        rotated_formatted
+        width, height,
+        gdk_pixbuf_get_rowstride(rotated),
+        destroy_notify, rotated
     );
+    */
 
     size_t size_blocks = 0;
     size_t size_letters = 0;
     int m_height = 0;
-    SDL_Rect *blocks = get_blocks(rotated_formatted, res, &size_blocks);
-    SDL_Rect *letters = get_letter_blocks(blocks, size_blocks, &m_height, res,
+    
+    struct Rect *blocks = get_blocks(rotated, res, &size_blocks);
+    struct Rect *letters = get_letter_blocks(blocks, size_blocks, &m_height, res,
                                           width, &size_letters);
 
-    printf("nb of letters in main: %zu\n", size_letters);
+    // printf("nb of letters in main: %zu\n", size_letters);
 
-    save_blocks(rotated_formatted, letters, m_height, size_letters,
-                cpy_of_rot);
+    struct Rect* grid_blocks = save_blocks(letters, m_height, size_letters,
+                rotated);
+
+    line_pos(grid_blocks);
+
     printf("Blocks saved in 'blocks/' folder.\n");
 
     free(blocks);
     free(letters);
 
-    g_object_unref(cpy_of_rot);
-    SDL_FreeSurface(formatted);
-    SDL_FreeSurface(denoised);
+    g_object_unref(rotated);
+    g_object_unref(denoised);
+    g_object_unref(pixbuf);
 
     return 0;
-    // if (SDL_LockSurface(image_format) < 0) {
-    // errx(EXIT_FAILURE,"error on locking surface: %s\n",SDL_GetError());
-    // }
-
-    // SDL_UnlockSurface(image_format);
 }

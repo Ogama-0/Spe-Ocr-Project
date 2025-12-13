@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include "../pretreatment/blocks_treatment.h"
 #include "solver.h"
 
 #define MAX_LINE_LEN 256
@@ -72,10 +74,10 @@ char **read_words(const char *filename, int *count)
     return words;
 }
 
-int main(int argc, char *argv[])
+int line_pos(struct Rect* grid_blocks)
 {
     int count = 0;
-    char **words = read_words("fichier_mots.txt", &count);
+    char **words = read_words("../solver/fichier_mots.txt", &count);
     if (!words)
     {
         fprintf(stderr, "Error on reading words\n");
@@ -84,10 +86,17 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < count; i++)
     {
-        solve_word("grid.txt",words[i]);
+        int results[4];
+        solve_word("../solver/grid.txt",words[i],grid_blocks,results);
+        for (int i = 0; i < 4; i++)
+        {
+            printf("%i ",results[i]);
+        }
+        printf("\n");
         free(words[i]);
     }
     free(words);
+    free(grid_blocks);
 
     return 0;
 }
