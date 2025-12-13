@@ -2,6 +2,9 @@
 #include <math.h>
 #include "manual_rotate.h"
 #include "blocks_treatment.h"
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 GdkPixbuf *rotate_pixbuf(GdkPixbuf *src, double angle_degrees)
 {
