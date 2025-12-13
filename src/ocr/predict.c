@@ -14,7 +14,7 @@ int main() {
   srand(time(NULL));
 
   int count;
-  ImgToPredict **imgs_to_test = load_imgs(IMAGE_PREDICT_TEST, &count);
+  ImgToPredict **imgs_to_test = load_imgs(IMAGE_PREDICT, &count);
   printf("dataset loaded succesfully :\ncount = %i\n", count);
 
   NeuralNetwork *net = network_load(NETWORK);
