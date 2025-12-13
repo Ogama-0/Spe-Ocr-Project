@@ -2,26 +2,28 @@
 
 #define DETECT_BLOCKS_H
 
+#include <stdint.h>
+
 struct Rect {
   int x; int y;
   int w; int h;
 };
 
-void update_block(int x, int y, SDL_Rect** blocks,
+void update_block(int x, int y, struct Rect** blocks,
                   size_t* size, size_t* capacity,
-                  SDL_Surface* surface, int** visited, Uint8* image);
+                  GdkPixbuf* pixbuf, int** visited, uint8_t* image);
 
-SDL_Rect get_block(SDL_Surface* surface,Uint8* image,
+struct Rect get_block(GdkPixbuf* pixbuf,uint8_t* image,
                    int x,int y,int** visited);
 
-SDL_Rect* get_blocks(SDL_Surface* surface,Uint8* image,size_t* size);
+struct Rect* get_blocks(GdkPixbuf* pixbuf,uint8_t* image,size_t* size);
 
-SDL_Rect* get_letter_blocks(SDL_Rect* blocks,size_t size,int* m_height,
-                            Uint8* image,int width,size_t* nb_letters);
+struct Rect* get_letter_blocks(struct Rect* blocks,size_t size,int* m_height,
+                            uint8_t* image,int width,size_t* nb_letters);
 
-int get_density(SDL_Rect block,Uint8* image,int width);
+int get_density(struct Rect block,uint8_t* image,int width);
 
-void save_blocks(SDL_Surface* surface,SDL_Rect* blocks,int m_height,
+struct Rect* save_blocks(struct Rect* blocks,int m_height,
                  size_t size,GdkPixbuf* pixbuf);
 
 struct Point {
@@ -30,7 +32,7 @@ struct Point {
 };
 
 struct Image_zone {
-  SDL_Rect* blocks;
+  struct Rect* blocks;
   int x_min; int x_max;
   int y_min; int y_max;
   int nb_col;

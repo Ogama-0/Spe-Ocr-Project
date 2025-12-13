@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <stdint.h>
 #include "blocks_treatment.h"
 #include "err.h"
 #include "pixbuf_scale.h"
@@ -10,7 +11,7 @@
 // If not, create a new block.
 void update_block(int x, int y, struct Rect **blocks, size_t *size,
                   size_t *capacity, GdkPixbuf* pixbuf, int **visited,
-                  Uint8 *image)
+                  uint8_t *image)
 {
     int exists = 0;
     size_t i = 0;
@@ -54,7 +55,7 @@ void update_block(int x, int y, struct Rect **blocks, size_t *size,
 
 // get a block using a propagation algorithm, from a black pixel belonging
 // to the block.
-struct Rect get_block(GdkPixbuf *pixbuf, Uint8 *image, int x, int y,
+struct Rect get_block(GdkPixbuf *pixbuf, uint8_t *image, int x, int y,
                    int **visited)
 {
     int w = gdk_pixbuf_get_width(pixbuf);
@@ -110,7 +111,7 @@ struct Rect get_block(GdkPixbuf *pixbuf, Uint8 *image, int x, int y,
 }
 
 // for every black pixel encountered, call the update_block function.
-struct Rect *get_blocks(GdkPixbuf* pixbuf, Uint8 *image, size_t *size)
+struct Rect *get_blocks(GdkPixbuf* pixbuf, uint8_t *image, size_t *size)
 {
     size_t capacity = 4;
     // create the array of blocks.
@@ -161,7 +162,7 @@ struct Rect *get_blocks(GdkPixbuf* pixbuf, Uint8 *image, size_t *size)
 }
 
 // get the amount of black pixels in a block.
-int get_density(struct Rect block, Uint8 *image, int width)
+int get_density(struct Rect block, uint8_t *image, int width)
 {
     int i = block.x;
     int density = 0;
@@ -184,7 +185,7 @@ int get_density(struct Rect block, Uint8 *image, int width)
 }
 
 // get the density of every block in the image.
-int *density_map(struct Rect *blocks, size_t size, Uint8 *image, int width)
+int *density_map(struct Rect *blocks, size_t size, uint8_t *image, int width)
 {
     int *map = malloc(size * sizeof(int));
     for (size_t i = 0; i < size; i++)
@@ -199,7 +200,7 @@ int compare(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 // get the median of the density. To do that, do a quick sort
 // with the density_map array and return the middle element or
 // the mean of the two middles if the number of elements is even.
-int get_density_median(struct Rect *blocks, size_t size, Uint8 *image, int width)
+int get_density_median(struct Rect *blocks, size_t size, uint8_t *image, int width)
 {
     int *map = density_map(blocks, size, image, width);
 
@@ -251,7 +252,7 @@ int get_median_height(struct Rect *blocks, size_t size)
 // with the median of the density, get every block that
 // represents a letter.
 struct Rect *get_letter_blocks(struct Rect *blocks, size_t size, int *m_height,
-                            Uint8 *image, int width, size_t *nb_letters)
+                            uint8_t *image, int width, size_t *nb_letters)
 {
     int density_median = get_density_median(blocks, size, image, width);
     int height_median = get_median_height(blocks, size);
@@ -408,8 +409,8 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
         else
         {
 
-            printf("\ntoo far for grid: %i\n",
-                   get_dist_blocks(*set1, blocks[i]));
+            // printf("\ntoo far for grid: %i\n",
+                   // get_dist_blocks(*set1, blocks[i]));
 
             if (*s2 == 0)
             {
@@ -460,7 +461,7 @@ void get_sets(struct Image_zone *set1, size_t *s1, size_t *cap1,
 }
 
 // save each block into an image with bmp format.
-void save_blocks(struct Rect *letters, int m_height,
+struct Rect* save_blocks(struct Rect *letters, int m_height,
                  size_t size,GdkPixbuf* pixbuf)
 {
     size_t cap1 = 4;
@@ -488,58 +489,21 @@ void save_blocks(struct Rect *letters, int m_height,
 
     // decide which set is the grid and which are the words
     size_t size_words;
-    size_t size_grid;
 
     if ((set1.x_max - set1.x_min) * (set1.y_max - set1.y_min) >
         (set2.x_max - set2.x_min) * (set2.y_max - set2.y_min))
     {
         grid = set1;
         words = set2;
-        size_grid = s1;
         size_words = s2;
     }
     else
     {
         grid = set2;
         words = set1;
-        size_grid = s2;
         size_words = s1;
     }
-
-    /*
-    printf("size of grid: %zu\n", size_grid);
-    printf("nb of columns and rows of grid: %i %i\n", grid.nb_col,
-           grid.nb_rows);
-    printf("%i %i - %i %i\n\n", grid.x_min, grid.x_max, grid.y_min, grid.y_max);
-
-    printf("size of words: %zu\n", size_words);
-    printf("nb of columns and rows of words: %i %i\n", words.nb_col,
-           words.nb_rows);
-    printf("%i %i - %i %i\n\n", words.x_min, words.x_max, words.y_min,
-           words.y_max);
-
-    size_t fdg = 0;
-    size_t gdf = 0;
-    while (fdg < size_grid && gdf < size_words)
-    {
-        printf("grid: %i %i\tword: %i %i\n", grid.blocks[fdg].x,
-               grid.blocks[fdg].y, words.blocks[gdf].x, words.blocks[gdf].y);
-        fdg++;
-        gdf++;
-    }
-    while (fdg < size_grid)
-    {
-        printf("grid: %i %i\n", grid.blocks[fdg].x, grid.blocks[fdg].y);
-        fdg++;
-    }
-    while (gdf < size_words)
-    {
-        printf("             word: %i %i\n", words.blocks[gdf].x,
-               words.blocks[gdf].y);
-        gdf++;
-    }
-    */
-
+    
     // Save the grid's letters in bmp images
     for (size_t i = 0; i < (size_t)grid.nb_rows; i++)
     {
@@ -553,7 +517,6 @@ void save_blocks(struct Rect *letters, int m_height,
                               i,j,1);
         }
     }
-    free(grid.blocks);
 
     // save the words' letters in bmp images
     size_t i = 1;
@@ -569,20 +532,8 @@ void save_blocks(struct Rect *letters, int m_height,
             size_row++;
         }
 
-        printf("size of row: %zu\n", size_row);
-        printf("%i\n", words_count);
-        printf("%zu\n", j);
-        printf("from %i to %i\n\n", words.blocks[j].x, words.blocks[i - 1].x);
-
         for (size_t k = j; k < j + size_row; k++)
         {
-            // printf("Bloc %zu: x=%d y=%d w=%d
-            // h=%d\n",i,blocks[i].x,blocks[i].y, blocks[i].w,blocks[i].h);
-            // fills the image with red if it doesn't work
-            // SDL_FillRect(surf, NULL, SDL_MapRGB(surf->format, 255, 0, 0));
-            // fills the surface with a portion of the original surface.
-            printf("saving image...\n");
-
             save_pixbuf_scale(pixbuf,&(words.blocks[k]),
                               (size_t)words_count,k-j,0);
         }
@@ -591,40 +542,5 @@ void save_blocks(struct Rect *letters, int m_height,
     }
     free(words.blocks);
 
-    /*
-    for (size_t i = 0; i < size; i++) {
-      SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormat(
-        0,
-        letters[i].w,
-        letters[i].h,
-        surface->format->BitsPerPixel,
-        SDL_PIXELFORMAT_RGBA8888
-      );
-
-      // printf("Bloc %zu: x=%d y=%d w=%d h=%d\n",i,blocks[i].x,blocks[i].y,
-      // blocks[i].w,blocks[i].h);
-
-      if (!surf)
-      {
-        printf("error on surfacing word block n°%zu: %s\n",i,SDL_GetError());
-        return;
-      }
-
-      // fills the image with red if it doesn't work
-      // SDL_FillRect(surf, NULL, SDL_MapRGB(surf->format, 255, 0, 0));
-
-      // fills the surface with a portion of the original surface.
-      if (SDL_BlitSurface(surface,&(letters[i]),
-                          surf,NULL) != 0)
-      {
-        printf("error on blitting surface: %s\n",SDL_GetError());
-      }
-
-      char filename[64];
-      // save a name with a different index every time.
-      snprintf(filename,sizeof(filename),"blocks/letter %zu.bmp",i);
-      SDL_SaveBMP(surf,filename);
-      SDL_FreeSurface(surf);
-    }
-    */
+    return grid.blocks;
 }
