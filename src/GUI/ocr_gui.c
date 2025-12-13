@@ -1,6 +1,13 @@
 #include <gtk/gtk.h>
+#include "../pretreatment/manual_rotate.h"
+#include "../pretreatment/preprocess.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 GtkWidget *image_widget = NULL;
+GtkWidget *angle_entry = NULL;
+
 GdkPixbuf *loaded_pixbuf = NULL;
 
 static void on_load_image(GtkButton *button, gpointer user_data) {
@@ -15,17 +22,15 @@ static void on_load_image(GtkButton *button, gpointer user_data) {
                                          NULL);
 
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-        char *filename;
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 
         if (loaded_pixbuf)
             g_object_unref(loaded_pixbuf);
 
         loaded_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
 
-        if (loaded_pixbuf) {
+        if (loaded_pixbuf)
             gtk_image_set_from_pixbuf(GTK_IMAGE(image_widget), loaded_pixbuf);
-        }
 
         g_free(filename);
     }
@@ -33,19 +38,88 @@ static void on_load_image(GtkButton *button, gpointer user_data) {
     gtk_widget_destroy(dialog);
 }
 
+static void on_rotate(GtkButton *button, gpointer user_data) {
+    if (!loaded_pixbuf)
+        return;
+
+    const char *text = gtk_entry_get_text(GTK_ENTRY(angle_entry));
+    double angle = g_ascii_strtod(text, NULL);
+
+    GdkPixbuf *rotated = rotate_pixbuf(loaded_pixbuf, angle);
+
+    if (!rotated) {
+        g_print("Rotation échouée\n");
+        return;
+    }
+
+    g_object_unref(loaded_pixbuf);
+    loaded_pixbuf = rotated;
+
+    gtk_image_set_from_pixbuf(GTK_IMAGE(image_widget), loaded_pixbuf);
+}
+
 static void on_solve(GtkButton *button, gpointer user_data) {
-    g_print("Solve button clicked!\n");
-    // Appelle moi la fonction pour solve ici le tigre
+    (void)button;
+    (void)user_data;
+
+    if (!loaded_pixbuf) {
+        g_print("Aucune image chargée.\n");
+        return;
+    }
+
+    // Récupérer l'angle de rotation depuis l'entrée (GtkEntry)
+    const char *angle_text = gtk_entry_get_text(GTK_ENTRY(angle_entry));
+    double angle = g_ascii_strtod(angle_text, NULL);
+
+    // Chemins temporaires pour le prétraitement
+    const char *input_path  = "images/temp_input.png";
+    const char *output_path = "images/output.bmp";
+
+    // Créer le dossier "images" si nécessaire
+    struct stat st;
+    if (stat("images", &st) == -1)
+        mkdir("images", 0700);
+    // Sauvegarder l'image chargée temporairement
+    GError *error = NULL;
+    if (!gdk_pixbuf_save(loaded_pixbuf, input_path, "png", &error, NULL)) {
+        g_print("Erreur lors de la sauvegarde de l'image temporaire: %s\n",
+                error->message);
+        g_error_free(error);
+        return;
+    }
+
+    // === Prétraitement automatique ===
+    int ret = preprocess_image(input_path, output_path, angle);
+    if (ret != 0) {
+        g_print("Erreur lors du prétraitement de l'image\n");
+        return;
+    }
+
+    // Recharger l'image prétraitée dans GtkImage
+    if (loaded_pixbuf)
+        g_object_unref(loaded_pixbuf);
+
+    loaded_pixbuf = gdk_pixbuf_new_from_file(output_path, &error);
+    if (!loaded_pixbuf) {
+        g_print("Erreur lors du chargement de l'image prétraitée: %s\n",
+                error ? error->message : "Erreur inconnue");
+        if (error) g_error_free(error);
+        return;
+    }
+
+    gtk_image_set_from_pixbuf(GTK_IMAGE(image_widget), loaded_pixbuf);
+
+    // === Ici, tu peux lancer la fonction OCR pour résoudre le puzzle ===
+    g_print("Prétraitement terminé. On peut maintenant lancer l'OCR.\n");
+    // ex: solve_puzzle(loaded_pixbuf, ...);
 }
 
 static void on_train(GtkButton *button, gpointer user_data) {
     g_print("Train button clicked!\n");
-    // Ici je veut l'appelle pour train l'ocr la bete
 }
 
 static void on_save(GtkButton *button, gpointer user_data) {
     g_print("Save button clicked!\n");
-    // fonction pour save ici grossee folle
 }
 
 int main(int argc, char *argv[]) {
@@ -57,6 +131,7 @@ int main(int argc, char *argv[]) {
     GtkWidget *solve_button;
     GtkWidget *train_button;
     GtkWidget *save_button;
+    GtkWidget *rotate_button;
 
     gtk_init(&argc, &argv);
 
@@ -90,8 +165,16 @@ int main(int argc, char *argv[]) {
     g_signal_connect(save_button, "clicked", G_CALLBACK(on_save), NULL);
     gtk_box_pack_start(GTK_BOX(hbox_buttons), save_button, TRUE, TRUE, 5);
 
-    gtk_widget_show_all(window);
+    angle_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(angle_entry), "Angle (°)");
+    gtk_box_pack_start(GTK_BOX(hbox_buttons), angle_entry, TRUE, TRUE, 5);
 
+    rotate_button = gtk_button_new_with_label("Rotate");
+    g_signal_connect(rotate_button, "clicked", G_CALLBACK(on_rotate), NULL);
+    gtk_box_pack_start(GTK_BOX(hbox_buttons), rotate_button, TRUE, TRUE, 5);
+
+    gtk_widget_show_all(window);
     gtk_main();
+
     return 0;
 }
