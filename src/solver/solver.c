@@ -1,27 +1,26 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include "../pretreatment/blocks_treatment.h"
+#include "solver.h"
 
 #define MAX_LIGNES 100
 #define MAX_COLS 100
 
-int main(int argc, char *argv[])
+void solve_word(char* grid, char* word, struct Rect* grid_blocks,
+                int* results)
 {
-    if (argc != 3)
-    {
-        return 1;
-    }
-    
     char grille[MAX_LIGNES][MAX_COLS];
     int nb_lignes = 0;
     int nb_colonnes = 0;
     char ligne[MAX_COLS];
 
-    FILE *fichier = fopen(argv[1], "r");
+    FILE *fichier = fopen(grid, "r");
     if (fichier == NULL)
     {
         printf("impossible d'ouvrir le fichier.\n");
-        return 1;
+        return;
     }
 
     while (fgets(ligne, sizeof(ligne), fichier))
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
     fclose(fichier);
 
     char mot[100];
-    strcpy(mot, argv[2]);
+    strcpy(mot, word);
     for (int i = 0; mot[i] != '\0'; i++)
     {
         mot[i] = toupper(mot[i]);
@@ -67,7 +66,7 @@ int main(int argc, char *argv[])
             if (grille[y][x] == mot[0])
             {
                 int ok = 1;
-                for (int k = 1; k < taille_mot; k++)    // droite
+                for (int k = 1; k < taille_mot; k++) // droite
                 {
                     if (x + k >= nb_colonnes || grille[y][x + k] != mot[k])
                     {
@@ -87,7 +86,7 @@ int main(int argc, char *argv[])
                 if (!trouve)
                 {
                     ok = 1;
-                    for (int k = 1; k < taille_mot; k++) 		// gauche
+                    for (int k = 1; k < taille_mot; k++) // gauche
                     {
                         if (x - k < 0 || grille[y][x - k] != mot[k])
                         {
@@ -110,7 +109,8 @@ int main(int argc, char *argv[])
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (y + k >= nb_lignes || grille[y + k][x] != mot[k])		//Bas
+                        if (y + k >= nb_lignes ||
+                            grille[y + k][x] != mot[k]) // Bas
                         {
                             ok = 0;
                             break;
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)			//haut
+                if (!trouve) // haut
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -147,12 +147,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)		// en bas a droite
+                if (!trouve) // en bas a droite
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x + k >= nb_colonnes || y + k >= nb_lignes || grille[y + k][x + k] != mot[k])
+                        if (x + k >= nb_colonnes || y + k >= nb_lignes ||
+                            grille[y + k][x + k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -168,12 +169,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)				// haut -gauche
+                if (!trouve) // haut -gauche
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x - k < 0 || y - k < 0 || grille[y - k][x - k] != mot[k])
+                        if (x - k < 0 || y - k < 0 ||
+                            grille[y - k][x - k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -189,12 +191,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)		//bas gauche
+                if (!trouve) // bas gauche
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x - k < 0 || y + k >= nb_lignes || grille[y + k][x - k] != mot[k])
+                        if (x - k < 0 || y + k >= nb_lignes ||
+                            grille[y + k][x - k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -210,12 +213,13 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                if (!trouve)			//haut droite
+                if (!trouve) // haut droite
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
                     {
-                        if (x + k >= nb_colonnes || y - k < 0 || grille[y - k][x + k] != mot[k])
+                        if (x + k >= nb_colonnes || y - k < 0 ||
+                            grille[y - k][x + k] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -245,12 +249,23 @@ int main(int argc, char *argv[])
 
     if (trouve)
     {
+        struct Rect begin = grid_blocks[nb_colonnes*y_debut+x_debut];
+        struct Rect end = grid_blocks[nb_colonnes*y_fin+x_fin];
+
+        results[0] = (begin.x+(begin.x+begin.w-1))/2;
+        results[1] = (begin.y+(begin.y+begin.h-1))/2;
+
+        results[2] = (end.x+(end.x+end.w-1))/2;
+        results[3] = (end.y+(end.y+end.h-1))/2;       
+        
         printf("(%d,%d)(%d,%d)\n", x_debut, y_debut, x_fin, y_fin);
     }
     else
     {
+        results[0] = 0;
+        results[1] = 0;
+        results[2] = 0;
+        results[3] = 0;
         printf("Not found\n");
     }
-
-    return 0;
 }

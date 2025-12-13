@@ -1,95 +1,212 @@
-#include <SDL2/SDL.h>
-#include <stdlib.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdio.h>
-#include "err.h"
-#include "binarize.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
 
-void grayscale(SDL_Surface* surface)
+void grayscale(GdkPixbuf *pixbuf)
 {
-  Uint32* pixels = surface->pixels;
-  int height = surface->h;
-  int width = surface->w;
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
-  for (int i = 0; i < height; i++)
-  {
-    for (int j = 0; j < width; j++)
+    for (int i = 0; i < height; i++)
     {
-      Uint8 r;
-      Uint8 g;
-      Uint8 b;
-      Uint8 a;
+        guchar* p = pixels + i * rowstride;   
+        for (int j = 0; j < width; j++)
+        {
+            guchar r = p[0];
+            guchar g = p[1];
+            guchar b = p[2];
 
-      SDL_GetRGBA(pixels[i*width+j],
-                 surface->format,&r,&g,&b,&a);
+            guchar gray = (guchar)(0.3 * r + 0.59 * g + 0.11 * b);
 
-      Uint8 gray = (Uint8)(0.3 * r + 0.59 * g + 0.11 * b);
+            p[0] = gray;
+            p[1] = gray;
+            p[2] = gray;
 
-      pixels[i*width+j] =
-        SDL_MapRGBA(surface->format,gray,gray,gray,a);
+            p += n_channels;
+        }
     }
-  }
 }
 
-void binarize(SDL_Surface* surface)
+int comp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+
+int get_gray_mean(GdkPixbuf *pixbuf)
 {
-  Uint32* pixels = surface->pixels;
-  int height = surface->h;
-  int width = surface->w;
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
-  for (int i = 0; i < height; i++)
-  {
-    for (int j = 0; j < width; j++)
+    // int gray_list[size];
+    int sum = 0;
+
+    for (int i = 0; i < height; i++)
     {
-      Uint8 r;
-      Uint8 g;
-      Uint8 b;
-      Uint8 a;
+        guchar* p = pixels + i*rowstride;
+        for (int j = 0; j < width; j++)
+        {
+            guchar r = p[0];
+            // guchar g = p[1];
+            // guchar b = p[2];
 
-      SDL_GetRGBA(pixels[i*width+j],
-                 surface->format,&r,&g,&b,&a);
+            sum += (size_t)r;
 
-      Uint8 gray = r;
-
-      if (gray > 200)
-      {
-        pixels[i*width+j] =
-          SDL_MapRGBA(surface->format,255,255,255,a);
-      }
-      else
-      {
-        pixels[i*width+j] =
-          SDL_MapRGBA(surface->format,0,0,0,a);
-      }
+            p += n_channels;
+        }
     }
-  }
+
+    size_t res = (size_t)sum / (height*width);
+    return (int)res;
 }
 
-int is_black(Uint32 pixel)
+void binarize(GdkPixbuf* pixbuf)
 {
-  if (pixel <= 255)
-  {
-    return 1;
-  }
-  return 0;
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    int mean = get_gray_mean(pixbuf);
+
+    for (int i = 0; i < height; i++)
+    {
+        guchar* p = pixels + i*rowstride;
+        for (int j = 0; j < width; j++)
+        {
+            guchar a = 255;
+            if (n_channels == 4)
+            {
+                a = p[3];
+            }
+
+            guchar gray = p[0];
+
+            if ((int)gray >= mean - 25 || a < 128)
+            {
+                p[0] = 255;
+                p[1] = 255;
+                p[2] = 255;
+            }
+            else
+            {
+                p[0] = 0;
+                p[1] = 0;
+                p[2] = 0;
+            }
+
+            if (n_channels == 4)
+            {
+                p[3] = 255;
+            }
+
+            p += n_channels;
+        }
+    }
+}
+
+void binarize_letters(GdkPixbuf* pixbuf)
+{
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+    for (int y = 0; y < height; y++)
+    {
+        guchar *p = pixels + y * rowstride;
+        for (int x = 0; x < width; x++)
+        {
+            guchar r = p[0];
+            guchar g = p[1];
+            guchar b = p[2];
+
+            if (r > 200 && g > 200 && b > 200)
+            {
+                p[0] = 0;
+                p[1] = 0;
+                p[2] = 0;
+            }
+
+            else
+            {
+                p[0] = 255;
+                p[1] = 255;
+                p[2] = 255;
+            }
+
+            if (n_channels == 4)
+            {
+                p[3] = 255;
+            }
+
+            p += n_channels;
+        }
+    }
+}
+
+int is_black(guchar pixel)
+{
+    if (pixel == 0)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 // transform the binarized image into an array of 0 and 1
-void formatting_binarized(SDL_Surface* binarized_surface,
-                            Uint8* res)
+void formatting_binarized(GdkPixbuf* pixbuf, uint8_t *res)
 {
-  int w = binarized_surface->w;
-  int h = binarized_surface->h;
-  Uint32* p = binarized_surface->pixels;
+    int width = gdk_pixbuf_get_width(pixbuf);
+    int height = gdk_pixbuf_get_height(pixbuf);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
-  for (int i = 0; i < w*h; i++)
-  {
-    if (is_black(p[i]))
+    for (int i = 0; i < height; i++)
     {
-      res[i] = 1;
+        guchar* p = pixels + i*rowstride;
+        for (int j = 0; j < width; j++)
+        {
+            if (is_black(p[0]))
+            {
+                res[i*width+j] = 1;
+            }
+            else
+            {
+                res[i*width+j] = 0;
+            }
+
+            p += n_channels;
+        }
     }
-    else
+}
+
+void print_formatted_bin(uint8_t *arr, int width, int height)
+{
+    FILE *f = fopen("grid_format.txt", "w");
+    int fd = fileno(f);
+
+    for (int i = 0; i < height; i++)
     {
-      res[i] = 0;
+        for (int j = 0; j < width; j++)
+        {
+            int n = arr[i * width + j];
+            if (n == 1)
+            {
+                write(fd, "1", 1);
+            }
+            else
+            {
+                write(fd, " ", 1);
+            }
+        }
+        write(fd, "\n", 1);
     }
-  }
 }

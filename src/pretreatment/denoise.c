@@ -1,51 +1,79 @@
-#include <SDL2/SDL.h>
-#include <stdlib.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "denoise.h"
 
 #define WINDOW_SIZE 3
 
-int compare_uint8(const void* a, const void* b)
+int compare_guchar(const void *a, const void *b)
 {
-    return (*(Uint8*)a - *(Uint8*)b);
+    return (int)(*(guchar*)a - *(guchar*)b);
 }
 
-SDL_Surface* median_filter(SDL_Surface* src)
+GdkPixbuf *median_filter(GdkPixbuf* pixbuf)
 {
-    int w = src->w;
-    int h = src->h;
+    int w = gdk_pixbuf_get_width(pixbuf);
+    int h = gdk_pixbuf_get_height(pixbuf);
 
-    SDL_Surface* dst = SDL_CreateRGBSurface(0, w, h, 32,
-        0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    GdkPixbuf* pix2 = gdk_pixbuf_new(
+                          GDK_COLORSPACE_RGB,
+                          gdk_pixbuf_get_has_alpha(pixbuf),
+                          8,
+                          w, h
+                      );
 
-    Uint32* src_pixels = (Uint32*)src->pixels;
-    Uint32* dst_pixels = (Uint32*)dst->pixels;
+    if (pix2 == NULL)
+    {
+        printf("pix2 empty\n");
+    }
+
+    guchar *src_pixels = gdk_pixbuf_get_pixels(pixbuf);
+    guchar *dst_pixels = gdk_pixbuf_get_pixels(pix2);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuf);
 
     int offset = WINDOW_SIZE / 2;
-    Uint8 window[WINDOW_SIZE * WINDOW_SIZE];
+    guchar window[WINDOW_SIZE * WINDOW_SIZE];
 
     for (int y = offset; y < h - offset; y++)
     {
         for (int x = offset; x < w - offset; x++)
         {
+            guchar* p_dst = dst_pixels + y*rowstride +
+                            x*n_channels;
+
             int k = 0;
 
             for (int j = -offset; j <= offset; j++)
             {
+                guchar* p_src = src_pixels + (y+j)*rowstride +
+                                (x-offset)*n_channels;
+                
                 for (int i = -offset; i <= offset; i++)
                 {
-                    Uint8 r, g, b;
-                    SDL_GetRGB(src_pixels[(y + j) * w + (x + i)], src->format, &r, &g, &b);
+                    guchar r = p_src[0];
+
+                    if (n_channels == 4)
+                    {
+                        p_dst[3] = p_src[3];
+                    }
+
                     window[k++] = r;
+
+                    p_src += n_channels;
                 }
             }
 
-            qsort(window, WINDOW_SIZE * WINDOW_SIZE, sizeof(Uint8), compare_uint8);
-            Uint8 median = window[(WINDOW_SIZE * WINDOW_SIZE) / 2];
+            qsort(window, WINDOW_SIZE * WINDOW_SIZE, sizeof(guchar),
+                  compare_guchar);
 
-            dst_pixels[y * w + x] = SDL_MapRGB(dst->format, median, median, median);
+            guchar median = window[(WINDOW_SIZE * WINDOW_SIZE) / 2];
+
+            p_dst[0] = median;
+            p_dst[1] = median;
+            p_dst[2] = median;
         }
     }
-
-    return dst;
+    
+    return pix2;
 }

@@ -1,8 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -Wextra `pkg-config --cflags --libs gdk-pixbuf-2.0` -lSDL2
-LDFLAGS = -lSDL2 `pkg-config --cflags --libs gdk-pixbuf-2.0` -lm
+CFLAGS = -Wall -Wextra `pkg-config --cflags --libs gdk-pixbuf-2.0` -fsanitize=address
 
-SRC = main.c denoise.c manual_rotate.c binarize.c blocks_treatment.c
+LDFLAGS = `pkg-config --cflags --libs gdk-pixbuf-2.0` -lm
+
+SRC = main.c denoise.c manual_rotate.c binarize.c blocks_treatment.c pixbuf_scale.c ../solver/find_words.c \
+		../solver/solver.c
+		
 OBJ = $(SRC:.c=.o)
 
 TARGET = preprocessing
@@ -13,4 +16,4 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(TARGET) images/* blocks/*
+	rm -f $(OBJ) $(TARGET) images/* blocks/grid/* blocks/words/*
