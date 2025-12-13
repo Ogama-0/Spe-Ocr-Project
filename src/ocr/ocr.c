@@ -1,4 +1,3 @@
-
 #include "../matrix/ops.h"
 #include "glib.h"
 #include "img.h"
@@ -99,7 +98,7 @@ void network_train_imgs(NeuralNetwork *net, Img **train_imgs, int train_count,
                         Img **val_imgs, int val_count, int epoch) {
   double best_accuracy = 0.0;
   int stagnant_epochs = 0;
-  int max_stagnant = 75; // Stop after 10 epochs with no improvement
+  int max_stagnant = 10; // Stop after 10 epochs with no improvement
 
   for (int curr_epoch = 0; curr_epoch < epoch; curr_epoch++) {
     // Train on the training set
