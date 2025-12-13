@@ -5,6 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+int get_y(char *filename) {
+  int res = atoi(filename + 7);
+
+  return res;
+}
+int get_x(char *filename) {
+  int res = atoi(filename + 10);
+
+  return res;
+}
+
 Img **load_dataset(char *file_string, int *nb_imgs) {
   const int expected_rows = 27;
   const int expected_cols = 27;
@@ -123,101 +134,110 @@ Img **load_dataset(char *file_string, int *nb_imgs) {
   return dataset;
 }
 
-// Img **load_imgs(const char *path, int *out_count) {
-//   DIR *dir = opendir(path);
-//   if (!dir) {
-//     fprintf(stderr, "Erreur : impossible d'ouvrir %s\n", path);
-//     *out_count = 0;
-//     return NULL;
-//   }
+ImgToPredict **load_imgs(const char *path, int *out_count) {
+  DIR *dir = opendir(path);
+  if (!dir) {
+    fprintf(stderr, "Erreur : impossible d'ouvrir %s\n", path);
+    *out_count = 0;
+    return NULL;
+  }
 
-//   struct dirent *entry;
-//   Img **imgs = NULL;
-//   int capacity = 10;
-//   int count = 0;
+  struct dirent *entry;
+  ImgToPredict **imgs = NULL;
+  int capacity = 10;
+  int count = 0;
 
-//   imgs = malloc(capacity * sizeof(Img *));
-//   if (!imgs) {
-//     fprintf(stderr, "Erreur allocation mémoire\n");
-//     closedir(dir);
-//     *out_count = 0;
-//     return NULL;
-//   }
+  imgs = malloc(capacity * sizeof(ImgToPredict *));
+  if (!imgs) {
+    fprintf(stderr, "Erreur allocation mémoire\n");
+    closedir(dir);
+    *out_count = 0;
+    return NULL;
+  }
 
-//   while ((entry = readdir(dir))) {
-//     if (!strstr(entry->d_name, ".png"))
-//       continue;
+  while ((entry = readdir(dir))) {
+    if (!strstr(entry->d_name, ".png"))
+      continue;
 
-//     // Construire le chemin complet du fichier
-//     char img_path[512];
-//     snprintf(img_path, sizeof(img_path), "%s/%s", path, entry->d_name);
+    // Construire le chemin complet du fichier
+    char img_path[512];
+    // printf("img_path = %s, path = %s\n", img_path, path);
+    snprintf(img_path, sizeof(img_path), "%s/%s", path, entry->d_name);
 
-//     GError *err = NULL;
-//     Img *img = gdk_pixbuf_new_from_file(img_path, &err);
-//     if (!img) {
-//       fprintf(stderr, "Erreur chargement image %s : %s\n", img_path,
-//               err->message);
-//       g_error_free(err);
-//       continue;
-//     }
+    GError *err = NULL;
+    GdkPixbuf *pixbuff = gdk_pixbuf_new_from_file(img_path, &err);
+    if (!pixbuff) {
+      fprintf(stderr, "Erreur chargement image %s : %s\n", img_path,
+              err->message);
+      g_error_free(err);
+      continue;
+    }
 
-//     // Vérifier taille 27x27
-//     int w = gdk_pixbuf_get_width(img);
-//     int h = gdk_pixbuf_get_height(img);
-//     if (w != 27 || h != 27) {
-//       fprintf(stderr, "Ignorée (taille non conforme) : %s (%dx%d)\n",
-//       img_path,
-//               w, h);
-//       g_object_unref(img);
-//       continue;
-//     }
+    // Vérifier taille 27x27
+    int w = gdk_pixbuf_get_width(pixbuff);
+    int h = gdk_pixbuf_get_height(pixbuff);
+    if (w != 27 || h != 27) {
+      fprintf(stderr, "Ignorée (taille non conforme) : %s (%dx%d)\n", img_path,
+              w, h);
+      g_object_unref(pixbuff);
+      continue;
+    }
 
-//     // Binariser : pixels proches du noir/blanc deviennent noir ou blanc
-//     guchar *pixels = gdk_pixbuf_get_pixels(img);
-//     int rowstride = gdk_pixbuf_get_rowstride(img);
-//     int n_channels = gdk_pixbuf_get_n_channels(img);
+    ImgToPredict *img = malloc(sizeof(ImgToPredict));
 
-//     for (int y = 0; y < h; y++) {
-//       guchar *row = pixels + y * rowstride;
-//       for (int x = 0; x < w; x++) {
-//         guchar *p = row + x * n_channels;
+    img->img_data = matrix_create(27, 27);
 
-//         // Ici on suppose RGB sans alpha
-//         // Valeur moyenne de la couleur
-//         int avg = (p[0] + p[1] + p[2]) / 3;
+    // Binariser : pixels proches du noir/blanc deviennent noir ou blanc
+    guchar *pixels = gdk_pixbuf_get_pixels(pixbuff);
+    int rowstride = gdk_pixbuf_get_rowstride(pixbuff);
+    int n_channels = gdk_pixbuf_get_n_channels(pixbuff);
 
-//         // Seuil pour noir ou blanc
-//         if (avg < 128) {
-//           p[0] = 0;
-//           p[1] = 0;
-//           p[2] = 0;
-//         } else {
-//           p[0] = 255;
-//           p[1] = 255;
-//           p[2] = 255;
-//         }
-//       }
-//     }
+    // Img* img = malloc
+    for (int y = 0; y < h; y++) {
+      guchar *row = pixels + y * rowstride;
+      for (int x = 0; x < w; x++) {
+        guchar *p = row + x * n_channels;
 
-//     // Ajouter dans le tableau
-//     if (count >= capacity) {
-//       capacity *= 2;
-//       Img **tmp = realloc(imgs, capacity * sizeof(Img *));
-//       if (!tmp) {
-//         fprintf(stderr, "Erreur realloc\n");
-//         g_object_unref(img);
-//         break;
-//       }
-//       imgs = tmp;
-//     }
+        // Ici on suppose RGB sans alpha
+        // Valeur moyenne de la couleur
+        int avg = (p[0] + p[1] + p[2]) / 3;
 
-//     imgs[count++] = img;
-//   }
+        // Seuil pour noir ou blanc
+        if (avg < 128) {
+          p[0] = 0;
+          p[1] = 0;
+          p[2] = 0;
+          img->img_data->entries[y][x] = 1;
+        } else {
+          p[0] = 255;
+          p[1] = 255;
+          p[2] = 255;
+          img->img_data->entries[y][x] = 0;
+        }
+      }
+    }
+    img->grid_y = get_y(entry->d_name);
+    img->grid_x = get_x(entry->d_name);
 
-//   closedir(dir);
-//   *out_count = count;
-//   return imgs;
-// }
+    // Ajouter dans le tableau
+    if (count >= capacity) {
+      capacity *= 2;
+      ImgToPredict **tmp = realloc(imgs, capacity * sizeof(ImgToPredict *));
+      if (!tmp) {
+        fprintf(stderr, "Erreur realloc\n");
+        g_object_unref(pixbuff);
+        break;
+      }
+      imgs = tmp;
+    }
+
+    imgs[count++] = img;
+  }
+
+  closedir(dir);
+  *out_count = count;
+  return imgs;
+}
 
 void img_print(Img *img) {
   matrix_print(img->img_data);

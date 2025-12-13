@@ -1,5 +1,7 @@
 
 #include "../matrix/ops.h"
+#include "glib.h"
+#include "img.h"
 #include "ocr.h"
 #include "tools/activations.h"
 #include <stdio.h>
@@ -80,51 +82,64 @@ void network_train(NeuralNetwork *net, Matrix *input, Matrix *output) {
   matrix_free(output_errors);
   matrix_free(hidden_errors);
 }
+Matrix *network_predict(NeuralNetwork *net, Matrix *input_data) {
+  Matrix *hidden_inputs = dot(net->hidden_weights, input_data);
+  Matrix *hidden_outputs = apply(sigmoid, hidden_inputs);
+  Matrix *final_inputs = dot(net->output_weights, hidden_outputs);
+  Matrix *final_outputs = apply(sigmoid, final_inputs);
 
-void network_train_imgs(NeuralNetwork *net, Img **imgs, int number_imgs,
-                        int epoch) {
-  double prev_accuracy = 0.0;
-  double threshold = 0.001;
+  matrix_free(hidden_inputs);
+  matrix_free(hidden_outputs);
+  matrix_free(final_inputs);
+
+  return final_outputs;
+}
+
+void network_train_imgs(NeuralNetwork *net, Img **train_imgs, int train_count,
+                        Img **val_imgs, int val_count, int epoch) {
+  double best_accuracy = 0.0;
   int stagnant_epochs = 0;
-  int max_stagnant = 100;
+  int max_stagnant = 10; // Stop after 10 epochs with no improvement
 
   for (int curr_epoch = 0; curr_epoch < epoch; curr_epoch++) {
-    for (int i = 0; i < number_imgs; i++) {
-      Img *cur_img = imgs[i];
+    // Train on the training set
+    for (int i = 0; i < train_count; i++) {
+      Img *cur_img = train_imgs[i];
       Matrix *img_data = matrix_flatten(cur_img->img_data, 0);
-      Matrix *output = matrix_create(26, 1);
+      Matrix *output = matrix_create(net->output, 1);
 
-      output->entries[cur_img->label][0] = 1; // Sortie cible
+      output->entries[cur_img->label][0] = 1; // Target output
       network_train(net, img_data, output);
 
       matrix_free(output);
       matrix_free(img_data);
     }
 
-    double accuracy = network_predict_imgs(net, imgs, number_imgs);
-    printf("Epoch %d - Accuracy: %.4f\n", curr_epoch + 1, accuracy);
+    // Evaluate on the validation set
+    double val_accuracy = network_predict_imgs(net, val_imgs, val_count);
+    double train_accuracy = network_predict_imgs(net, train_imgs, train_count);
+    printf("Epoch %d - Train Accuracy: %.4f, Validation Accuracy: %.4f\n",
+           curr_epoch + 1, train_accuracy, val_accuracy);
 
-    if (accuracy - prev_accuracy < threshold) {
-      stagnant_epochs++;
-    } else {
+    // Early stopping logic based on validation accuracy
+    if (val_accuracy > best_accuracy) {
+      best_accuracy = val_accuracy;
       stagnant_epochs = 0;
+      printf("New best validation accuracy! Saving network to 'best_model'.\n");
+      network_save(net, "best_model"); // Save the best performing model
+    } else {
+      stagnant_epochs++;
     }
 
     if (stagnant_epochs >= max_stagnant) {
-      printf("le net ne converge plus (stagnation detectee après "
-             "%d epochs).\n",
-             stagnant_epochs);
+      printf("Validation accuracy has not improved for %d epochs. "
+             "Stopping training.\n",
+             max_stagnant);
       break;
     }
-
-    prev_accuracy = accuracy;
   }
 
-  if (stagnant_epochs < max_stagnant) {
-    printf("Entraînement terminé : Final Accuracy: %f\n", prev_accuracy);
-  } else {
-    printf("Le reseau n'a pas converger\n");
-  }
+  printf("Training finished. Best validation accuracy: %f\n", best_accuracy);
 }
 
 Matrix *network_predict_img(NeuralNetwork *net, Img *img) {
@@ -132,6 +147,25 @@ Matrix *network_predict_img(NeuralNetwork *net, Img *img) {
   Matrix *res = network_predict(net, img_data);
   matrix_free(img_data);
   return res;
+}
+
+Matrix *network_predict_img_runtime(NeuralNetwork *net, ImgToPredict *img) {
+  Matrix *img_data = matrix_flatten(img->img_data, 0);
+  Matrix *res = network_predict(net, img_data);
+  matrix_free(img_data);
+  return res;
+}
+
+void network_predict_imgs_runtime(NeuralNetwork *net, ImgToPredict **imgs,
+                                  int n) {
+
+  for (int i = 0; i < n; i++) {
+
+    Matrix *prediction = network_predict_img_runtime(net, imgs[i]);
+    printf("image (%i, %i) : \n", imgs[i]->grid_y, imgs[i]->grid_x);
+    matrix_print(prediction);
+    imgs[i]->label = matrix_argmax(prediction) + 'A';
+  };
 }
 
 double network_predict_imgs(NeuralNetwork *net, Img **imgs, int n) {
@@ -146,22 +180,8 @@ double network_predict_imgs(NeuralNetwork *net, Img **imgs, int n) {
   return 1.0 * n_correct / n;
 }
 
-Matrix *network_predict(NeuralNetwork *net, Matrix *input_data) {
-  Matrix *hidden_inputs = dot(net->hidden_weights, input_data);
-  Matrix *hidden_outputs = apply(sigmoid, hidden_inputs);
-  Matrix *final_inputs = dot(net->output_weights, hidden_outputs);
-  Matrix *final_outputs = apply(sigmoid, final_inputs);
-  Matrix *result = softmax(final_outputs);
-
-  matrix_free(hidden_inputs);
-  matrix_free(hidden_outputs);
-  matrix_free(final_inputs);
-  matrix_free(final_outputs);
-
-  return result;
-}
-
 void network_save(NeuralNetwork *net, char *file_string) {
+  char *curr_path = g_get_current_dir();
   mkdir(file_string, 0777);
   // Write the descriptor file
   chdir(file_string);
@@ -173,10 +193,13 @@ void network_save(NeuralNetwork *net, char *file_string) {
   matrix_save(net->hidden_weights, "hidden");
   matrix_save(net->output_weights, "output");
   printf("Successfully written to '%s'\n", file_string);
-  chdir("-"); // Go back to the orignal directory
+  chdir(curr_path); // Go back to the orignal directory
 }
 
 NeuralNetwork *network_load(char *file_string) {
+  char *curr_path = g_get_current_dir();
+  printf("curr path = %s\n", curr_path);
+  printf("path = %s\n", file_string);
   NeuralNetwork *net = malloc(sizeof(NeuralNetwork));
   char entry[MAXCHAR];
   chdir(file_string);
@@ -192,7 +215,7 @@ NeuralNetwork *network_load(char *file_string) {
   net->hidden_weights = matrix_load("hidden");
   net->output_weights = matrix_load("output");
   printf("Successfully loaded network from '%s'\n", file_string);
-  chdir("-"); // Go back to the original directory
+  chdir(curr_path); // Go back to the original directory
   return net;
 }
 
@@ -212,3 +235,7 @@ void network_free(NeuralNetwork *net) {
   free(net);
   net = NULL;
 }
+/*
+
+  */
+void save_predict(Matrix *mat) {}

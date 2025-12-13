@@ -1,3 +1,4 @@
+
 CC = gcc
 
 CFLAGS = -std=c11 -Wall -Wextra -Iinclude -Itools \
@@ -6,14 +7,25 @@ CFLAGS = -std=c11 -Wall -Wextra -Iinclude -Itools \
 LDFLAGS = -lm \
           $(shell pkg-config --libs gdk-pixbuf-2.0)
 
-SRC = main.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/resize_dataset.c
-OBJ = $(SRC:.c=.o)
+SRC     = main.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/ext_img.c tools/int_matrix.c
+SRCPRED = predict.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/ext_img.c tools/int_matrix.c
+
+OBJ     = $(SRC:.c=.o)
+OBJPRED = $(SRCPRED:.c=.o)
+
 EXEC = ocr_solver
+PRED = predict
 
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
 	$(CC) $(OBJ) -o $@ $(LDFLAGS)
+
+$(PRED): $(OBJPRED)
+	$(CC) $(OBJPRED) -o $@ $(LDFLAGS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXEC)
 	@echo "Running the application..."
@@ -21,4 +33,4 @@ run: $(EXEC)
 	@echo "Exiting the application."
 
 clean:
-	rm -f $(OBJ) $(EXEC)
+	rm -f $(OBJ) $(OBJPRED) $(EXEC) $(PRED)
