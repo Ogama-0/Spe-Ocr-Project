@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "../ocr/train_ocr.h"
 
 GtkWidget *image_widget = NULL;
 GtkWidget *angle_entry = NULL;
@@ -115,7 +116,16 @@ static void on_solve(GtkButton *button, gpointer user_data) {
 }
 
 static void on_train(GtkButton *button, gpointer user_data) {
-    g_print("Train button clicked!\n");
+    (void)button;
+    (void)user_data;
+
+    g_print("Training OCR...\n");
+
+    if (train_ocr() != 0)
+        g_printerr("OCR training failed\n");
+    else
+        g_print("OCR training completed successfully\n");
+
 }
 
 static void on_save(GtkButton *button, gpointer user_data) {

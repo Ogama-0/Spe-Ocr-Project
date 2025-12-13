@@ -1,6 +1,9 @@
 #include "manual_rotate.h"
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <math.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 GdkPixbuf* rotate_pixbuf(GdkPixbuf* src, double angle_degrees) {
     int src_w = gdk_pixbuf_get_width(src);

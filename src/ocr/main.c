@@ -42,7 +42,7 @@ int main() {
   // validation set
   network_train_imgs(net, train_imgs, train_count, val_imgs, val_count, epoch);
 
-  network_save(net, "net_200-1.00-10_12");
+  network_save(net, "run_time_net");
 
   // Free the entire original dataset
   imgs_free(imgs, count);
