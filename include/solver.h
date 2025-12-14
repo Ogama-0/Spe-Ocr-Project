@@ -1,2 +1,0 @@
-
-int solve(char* filename);

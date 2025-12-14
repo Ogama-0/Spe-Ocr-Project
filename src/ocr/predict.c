@@ -4,15 +4,13 @@
 #include "tools/img.h"
 #include <stdio.h>
 
-char *IMAGE_PREDICT_TEST = "./dataset_test";
-
 char *GRID_IMAGE_PREDICT =
     "../pretreatment/blocks/grid"; //   ou il vas chercher la grid
 char *WORDS_IMAGE_PREDICT =
     "../pretreatment/blocks/words"; // ou il vas chercher les mots (en mode sur
                                     // le cote)
 
-char *NETWORK = "./best_model"; // ou il vas chercher le nw
+char *NETWORK = "./network_saved"; // ou il vas chercher le nw
 char *GRID_INPUT_SOLVER =
     "input_solver/grid"; // ou il vas mettre le fichier grid input du solver
 char *WORDS_INPUT_SOLVER =

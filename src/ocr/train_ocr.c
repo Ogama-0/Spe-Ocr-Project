@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-char *PATH_DATASET = "../dataset_processed_LeBenjPrime";
-char *PATH_NETWORK_TO_SAVE = "net_200-1.00-10_12";
+char *PATH_DATASET = "../dataset";
 int MAX_EPOCH = 150;
 int HIDDEN = 200;
 double LR = 0.01;
@@ -57,7 +56,7 @@ int train_ocr(void)
     network_train_imgs(net, train_imgs, train_count, val_imgs, val_count,
                        epoch);
 
-    network_save(net, PATH_NETWORK_TO_SAVE);
+    network_save(net, "network_saved");
 
     imgs_free(imgs, count);
     network_free(net);
