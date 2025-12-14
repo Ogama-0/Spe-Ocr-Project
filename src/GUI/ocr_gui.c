@@ -25,6 +25,7 @@ static GdkPixbuf *current_pixbuf = NULL;
 /* =========================
    Utils GTK thread-safe
    ========================= */
+
 static gboolean update_status_idle(gpointer data)
 {
     const char *text = (const char *)data;
@@ -347,7 +348,6 @@ static void on_rotate(GtkButton *button, gpointer user_data)
 
 static void on_save(GtkButton *button, gpointer user_data)
 {
-
     (void)button;
     (void)user_data;
 
@@ -357,21 +357,35 @@ static void on_save(GtkButton *button, gpointer user_data)
         return;
     }
 
-    struct stat st;
-    if (stat("output", &st) == -1)
-        mkdir("output", 0700);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new(
+        "Save Image", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, "_Cancel",
+        GTK_RESPONSE_CANCEL, "_Save", GTK_RESPONSE_ACCEPT, NULL);
 
-    GError *error = NULL;
-    if (!gdk_pixbuf_save(current_pixbuf, "output/saved_image.png", "png",
-                         &error, NULL))
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog),
+                                                   TRUE);
+
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "image.png");
+
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
     {
-        g_print("Error saving image: %s\n", error->message);
-        g_error_free(error);
+        char *filename =
+            gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+        GError *error = NULL;
+        if (!gdk_pixbuf_save(current_pixbuf, filename, "png", &error, NULL))
+        {
+            g_printerr("Error saving image: %s\n", error->message);
+            g_error_free(error);
+        }
+        else
+        {
+            g_print("Image saved to %s\n", filename);
+        }
+
+        g_free(filename);
     }
-    else
-    {
-        g_print("Image saved successfully\n");
-    }
+
+    gtk_widget_destroy(dialog);
 }
 
 /* =========================
