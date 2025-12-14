@@ -238,3 +238,33 @@ void network_free(NeuralNetwork *net) {
 
   */
 void save_predict(Matrix *mat) {}
+
+/**
+ * @brief Initializes the OCR neural network
+ * 
+ * Loads the trained model weights and prepares the network for prediction
+ * 
+ * @return int 0 on success, -1 on failure
+ */
+
+/**
+ * @brief Processes characters from preprocessed images
+ * 
+ * Iterates through all character images in the blocks directory,
+ * performs character recognition, and builds the output grid
+ * 
+ * @return int 0 on success, -1 on failure
+ */
+
+/**
+ * @brief Predicts a single character from an image
+ * 
+ * @param image_path Path to the character image file
+ * @return char Predicted character, '\0' on failure
+ */
+
+/**
+ * @brief Cleans up OCR resources
+ * 
+ * Frees all memory allocated for the neural network
+ */

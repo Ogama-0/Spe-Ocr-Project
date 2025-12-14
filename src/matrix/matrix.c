@@ -5,6 +5,13 @@
 
 #define MAXCHAR 100
 
+/**
+ * @brief Creates a new matrix with specified dimensions
+ * 
+ * @param rows Number of rows in the matrix
+ * @param cols Number of columns in the matrix
+ * @return Matrix* Pointer to the newly created matrix, NULL on failure
+ */
 Matrix *matrix_create(int row, int col)
 {
     Matrix *matrix = malloc(sizeof(Matrix));
@@ -18,6 +25,12 @@ Matrix *matrix_create(int row, int col)
     return matrix;
 }
 
+/**
+ * @brief Fills the matrix with a constant value
+ * 
+ * @param m Pointer to the matrix
+ * @param n The value to fill the matrix with
+ */
 void matrix_fill(Matrix *m, int n)
 {
     for (int i = 0; i < m->rows; i++)
@@ -29,6 +42,11 @@ void matrix_fill(Matrix *m, int n)
     }
 }
 
+/**
+ * @brief Frees the memory allocated for a matrix
+ * 
+ * @param matrix Pointer to the matrix to be freed
+ */
 void matrix_free(Matrix *m)
 {
     for (int i = 0; i < m->rows; i++)
@@ -40,6 +58,11 @@ void matrix_free(Matrix *m)
     m = NULL;
 }
 
+/**
+ * @brief Prints the matrix to the standard output
+ * 
+ * @param m Pointer to the matrix
+ */
 void matrix_print(Matrix *m)
 {
     printf("Rows: %d Columns: %d\n", m->rows, m->cols);
@@ -53,6 +76,12 @@ void matrix_print(Matrix *m)
     }
 }
 
+/**
+ * @brief Creates a copy of the matrix
+ * 
+ * @param m Pointer to the matrix to be copied
+ * @return Matrix* Pointer to the newly created matrix, NULL on failure
+ */
 Matrix *matrix_copy(Matrix *m)
 {
     Matrix *mat = matrix_create(m->rows, m->cols);
@@ -66,6 +95,12 @@ Matrix *matrix_copy(Matrix *m)
     return mat;
 }
 
+/**
+ * @brief Saves the matrix to a file
+ * 
+ * @param m Pointer to the matrix
+ * @param file_string The name of the file to save the matrix to
+ */
 void matrix_save(Matrix *m, char *file_string)
 {
     FILE *file = fopen(file_string, "w");
@@ -82,6 +117,12 @@ void matrix_save(Matrix *m, char *file_string)
     fclose(file);
 }
 
+/**
+ * @brief Loads a matrix from a file
+ * 
+ * @param file_string The name of the file to load the matrix from
+ * @return Matrix* Pointer to the newly created matrix, NULL on failure
+ */
 Matrix *matrix_load(char *file_string)
 {
     FILE *file = fopen(file_string, "r");
@@ -110,6 +151,12 @@ double uniform_distribution(double low, double high)
     return low + r * (high - low);
 }
 
+/**
+ * @brief Randomizes the entries of the matrix using a uniform distribution
+ * 
+ * @param m Pointer to the matrix
+ * @param n The range of the distribution
+ */
 void matrix_randomize(Matrix *m, int n)
 {
     double range = 1.0 / sqrt(n); // Xavier-like
@@ -137,6 +184,13 @@ int matrix_argmax(Matrix *m)
     return max_idx;
 }
 
+/**
+ * @brief Flattens the matrix into a vector
+ * 
+ * @param m Pointer to the matrix
+ * @param axis The axis to flatten the matrix along (0 = column vector, 1 = row vector)
+ * @return Matrix* Pointer to the newly created vector, NULL on failure
+ */
 Matrix *matrix_flatten(Matrix *m, int axis)
 {
     // Axis = 0 -> Column Vector, Axis = 1 -> Row Vector
@@ -165,4 +219,33 @@ Matrix *matrix_flatten(Matrix *m, int axis)
         }
     }
     return mat;
+}
+
+/**
+ * @brief Performs matrix multiplication
+ * 
+ * @param a First matrix (m x n)
+ * @param b Second matrix (n x p)
+ * @return Matrix* Result matrix (m x p), NULL on failure
+ */
+Matrix *matrix_multiply(Matrix *a, Matrix *b)
+{
+    if (a->cols != b->rows)
+    {
+        printf("Error: Incompatible matrix dimensions for multiplication\n");
+        return NULL;
+    }
+    Matrix *result = matrix_create(a->rows, b->cols);
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < b->cols; j++)
+        {
+            result->entries[i][j] = 0;
+            for (int k = 0; k < a->cols; k++)
+            {
+                result->entries[i][j] += a->entries[i][k] * b->entries[k][j];
+            }
+        }
+    }
+    return result;
 }

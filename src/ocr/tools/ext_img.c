@@ -3,12 +3,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/**
+ * @brief Prints an ImgToPredict structure for debugging
+ * 
+ * @param img Pointer to the ImgToPredict structure to print
+ */
 void imgTo_print(ImgToPredict *img)
 {
     matrix_print(img->img_data);
-    printf("Img Label: %c\n", img->label + 'a');
 }
 
+/**
+ * @brief Frees memory allocated for an ImgToPredict structure
+ * 
+ * @param img Pointer to the ImgToPredict structure to free
+ */
 void imgTo_free(ImgToPredict *img)
 {
     matrix_free(img->img_data);
@@ -16,6 +26,12 @@ void imgTo_free(ImgToPredict *img)
     img = NULL;
 }
 
+/**
+ * @brief Frees memory allocated for an array of ImgToPredict structures
+ * 
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param n Number of elements in the array
+ */
 void imgsTo_free(ImgToPredict **imgs, int n)
 {
     for (int i = 0; i < n; i++)
@@ -26,6 +42,13 @@ void imgsTo_free(ImgToPredict **imgs, int n)
     imgs = NULL;
 }
 
+/**
+ * @brief Gets the maximum row count from an array of images
+ * 
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the array
+ * @return int Maximum row count (grid_x + 1)
+ */
 int imgsTo_get_row(ImgToPredict **imgs, size_t count)
 {
     int res = 0;
@@ -38,6 +61,14 @@ int imgsTo_get_row(ImgToPredict **imgs, size_t count)
     }
     return res + 1;
 }
+
+/**
+ * @brief Gets the maximum column count from an array of images
+ * 
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the array
+ * @return int Maximum column count (grid_y + 1)
+ */
 int imgsTo_get_col(ImgToPredict **imgs, size_t count)
 {
     int res = 0;
@@ -51,6 +82,13 @@ int imgsTo_get_col(ImgToPredict **imgs, size_t count)
     return res + 1;
 }
 
+/**
+ * @brief Converts an array of ImgToPredict structures to an integer matrix
+ * 
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the array
+ * @return int_matrix* Pointer to the created matrix
+ */
 int_matrix *Imgs_To_Matrix(ImgToPredict **imgs, size_t count)
 {
     int row = imgsTo_get_row(imgs, count);
@@ -65,6 +103,13 @@ int_matrix *Imgs_To_Matrix(ImgToPredict **imgs, size_t count)
     return res;
 }
 
+/**
+ * @brief Saves predictions from images to a matrix file
+ * 
+ * @param path Path to the output file
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the array
+ */
 void img_save_predict(char *path, ImgToPredict **imgs, size_t count)
 {
     int_matrix *mat = Imgs_To_Matrix(imgs, count);
@@ -74,23 +119,16 @@ void img_save_predict(char *path, ImgToPredict **imgs, size_t count)
 }
 
 /**
- * @brief Converts an array of ImgToPredict structures to a list of words.
- *
- * This function processes an array of ImgToPredict structures, organizing them
- * into words based on their grid_y (word index) and grid_x (character index)
- * properties.
- *
- * @param imgs An array of pointers to ImgToPredict structures.
- * @param count The number of elements in the imgs array.
- * @param num_words_out A pointer to an integer where the number of words will
- * be stored.
- * @param word_lengths_out A pointer to a size_t pointer where the array of word
- * lengths will be stored.
- * @return A dynamically allocated array of strings (char **), where each string
- * is a word. The strings may contain null characters ('\0') for missing
- * letters. Returns NULL on allocation failure or if count is 0. The caller is
- * responsible for freeing the returned array of strings, each string within it,
- * and the word_lengths array.
+ * @brief Converts an array of ImgToPredict structures to a list of words
+ * 
+ * Processes an array of ImgToPredict structures, organizing them into words
+ * based on their grid_y (word index) and grid_x (character index) properties.
+ * 
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the imgs array
+ * @param num_words_out Pointer to store the number of words
+ * @param word_lengths_out Pointer to store the array of word lengths
+ * @return char** Array of strings (words), NULL on failure
  */
 char **imgs_to_words_list(ImgToPredict **imgs, size_t count, int *num_words_out,
                           size_t **word_lengths_out)
@@ -111,7 +149,6 @@ char **imgs_to_words_list(ImgToPredict **imgs, size_t count, int *num_words_out,
         }
     }
     num_words++;
-    printf("nb_words :%i\n", num_words);
 
     size_t *word_lengths = calloc(num_words, sizeof(size_t));
     if (!word_lengths)
@@ -169,28 +206,20 @@ char **imgs_to_words_list(ImgToPredict **imgs, size_t count, int *num_words_out,
 }
 
 /**
- * @brief Saves the recognized words to a file.
- *
- * This function takes an array of ImgToPredict, converts them to words,
- * and saves them as a single line of space-separated text in the specified
- * file. Unrecognized characters within words are replaced with '?'.
- *
- * @param path The path to the output file.
- * @param imgs An array of pointers to ImgToPredict structures.
- * @param count The number of elements in the imgs array.
+ * @brief Saves recognized words to a file
+ * 
+ * Converts an array of ImgToPredict to words and saves them as space-separated
+ * text in the specified file. Unrecognized characters are replaced with '?'.
+ * 
+ * @param path Path to the output file
+ * @param imgs Array of pointers to ImgToPredict structures
+ * @param count Number of elements in the imgs array
  */
 void img_save_words_predict(char *path, ImgToPredict **imgs, size_t count)
 {
-    printf("in img_save_words_predicts\n");
     int num_words = 0;
     size_t *word_lengths = NULL;
     char **words = imgs_to_words_list(imgs, count, &num_words, &word_lengths);
-    printf("len words : %i\n", num_words);
-
-    for (int i = 0; i < num_words; i++)
-    {
-        printf("%s\n", words[i]);
-    }
 
     FILE *file = fopen(path, "w");
     if (!file)
@@ -241,5 +270,4 @@ void img_save_words_predict(char *path, ImgToPredict **imgs, size_t count)
     }
 
     fclose(file);
-    printf("out img_save_words_predicts\n");
 }

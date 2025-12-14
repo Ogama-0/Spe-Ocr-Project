@@ -1,3 +1,11 @@
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gdk/gdk.h>
+#include <glib.h>
+#include <gtk/gtk.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "../ocr/predict.h"
 #include "../ocr/train_ocr.h"
 #include "../pretreatment/binarize.h"
@@ -5,16 +13,8 @@
 #include "../pretreatment/denoise.h"
 #include "../pretreatment/manual_rotate.h"
 #include "../solver/solver.h"
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-/* =========================
-   Variables globales
-   ========================= */
+
 static GtkWidget *image_widget = NULL;
 static GtkWidget *status_label = NULL;
 static GtkWidget *angle_entry = NULL;
@@ -22,10 +22,12 @@ static GtkWidget *rotate_button = NULL;
 static char *selected_image_path = NULL;
 static GdkPixbuf *current_pixbuf = NULL;
 
-/* =========================
-   Utils GTK thread-safe
-   ========================= */
-
+/**
+ * @brief Updates the status label in a thread-safe manner
+ * 
+ * @param data Text to display in the status label
+ * @return gboolean G_SOURCE_REMOVE to indicate one-time execution
+ */
 static gboolean update_status_idle(gpointer data)
 {
     const char *text = (const char *)data;
@@ -33,9 +35,14 @@ static gboolean update_status_idle(gpointer data)
     return G_SOURCE_REMOVE;
 }
 
-/* =========================
-   Thread OCR training
-   ========================= */
+/**
+ * @brief OCR training thread function
+ * 
+ * Executes the OCR training process in a separate thread to prevent UI blocking
+ * 
+ * @param user_data Unused user data
+ * @return gpointer NULL on completion
+ */
 static gpointer train_ocr_thread(gpointer user_data)
 {
     (void)user_data;
@@ -52,14 +59,17 @@ static gpointer train_ocr_thread(gpointer user_data)
     return NULL;
 }
 
-#include <gdk-pixbuf/gdk-pixbuf.h>
-#include <gdk/gdk.h>
-#include <gtk/gtk.h>
-#include <stdlib.h>
-
-#include <stdlib.h> // abs()
-
-// Dessine un pixel si dans les bornes
+/**
+ * @brief Sets a pixel in the pixbuf with bounds checking
+ * 
+ * @param pixbuf Target pixbuf
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @param r Red component (0-255)
+ * @param g Green component (0-255)
+ * @param b Blue component (0-255)
+ * @param a Alpha component (0-255)
+ */
 static void set_pixel(GdkPixbuf *pixbuf, int x, int y, guchar r, guchar g,
                       guchar b, guchar a)
 {
@@ -80,6 +90,19 @@ static void set_pixel(GdkPixbuf *pixbuf, int x, int y, guchar r, guchar g,
         p[3] = a;
 }
 
+/**
+ * @brief Draws a thick line on a pixbuf using Bresenham's algorithm
+ * 
+ * @param pixbuf Target pixbuf
+ * @param x0 Start X coordinate
+ * @param y0 Start Y coordinate
+ * @param x1 End X coordinate
+ * @param y1 End Y coordinate
+ * @param r Red component (0-255)
+ * @param g Green component (0-255)
+ * @param b Blue component (0-255)
+ * @param a Alpha component (0-255)
+ */
 void draw_line_thick(GdkPixbuf *pixbuf, int x0, int y0, int x1, int y1,
                      guchar r, guchar g, guchar b, guchar a)
 {
@@ -89,7 +112,6 @@ void draw_line_thick(GdkPixbuf *pixbuf, int x0, int y0, int x1, int y1,
 
     while (1)
     {
-        // Épaisseur : carré 3x3 autour du point
         for (int ox = -1; ox <= 1; ox++)
         {
             for (int oy = -1; oy <= 1; oy++)
@@ -113,9 +135,15 @@ void draw_line_thick(GdkPixbuf *pixbuf, int x0, int y0, int x1, int y1,
         }
     }
 }
-/* =========================
-   Callbacks
-   ========================= */
+
+/**
+ * @brief Handles the "Load Image" button click event
+ * 
+ * Opens a file chooser dialog to select and load an image
+ * 
+ * @param button The button widget that was clicked
+ * @param user_data Unused user data
+ */
 static void on_load_image(GtkButton *button, gpointer user_data)
 {
     (void)button;
@@ -154,15 +182,35 @@ static void on_load_image(GtkButton *button, gpointer user_data)
     gtk_widget_destroy(dialog);
 }
 
+/**
+ * @brief Handles the "Train OCR" button click event
+ * 
+ * Launches OCR training in a separate thread
+ * 
+ * @param button The button widget that was clicked
+ * @param user_data Unused user data
+ */
 static void on_train_ocr(GtkButton *button, gpointer user_data)
 {
     (void)button;
     (void)user_data;
 
-    /* Lancer le training dans un thread */
     g_thread_new("ocr_train_thread", train_ocr_thread, NULL);
 }
 
+/**
+ * @brief Handles the "Solve" button click event
+ * 
+ * Executes the complete OCR pipeline:
+ * 1. Preprocesses the image (grayscale, denoise, binarize, rotate)
+ * 2. Detects and extracts character blocks
+ * 3. Performs character recognition
+ * 4. Solves the word search puzzle
+ * 5. Draws solution lines on the image
+ * 
+ * @param button The button widget that was clicked
+ * @param user_data Unused user data
+ */
 static void on_solve(GtkButton *button, gpointer user_data)
 {
     (void)button;
@@ -187,27 +235,21 @@ static void on_solve(GtkButton *button, gpointer user_data)
         return;
     }
 
-    // 1. Grayscale
     grayscale(pixbuf);
 
-    // 2. Denoise
     GdkPixbuf *denoised = median_filter(pixbuf);
     g_object_unref(pixbuf);
 
-    // 3. Binarize
     binarize(denoised);
 
-    // 4. Rotate
     GdkPixbuf *rotated = automatic_rotate(denoised);
     g_object_unref(denoised);
 
-    // 5. Binarize again
     binarize(rotated);
 
     g_idle_add(update_status_idle,
                "Preprocessing finished. Detecting blocks...");
 
-    // 6. Block detection
     char old_cwd[1024];
     if (getcwd(old_cwd, sizeof(old_cwd)) == NULL)
     {
@@ -242,7 +284,7 @@ static void on_solve(GtkButton *button, gpointer user_data)
         g_idle_add(update_status_idle,
                    "Error: Block detection memory allocation failed.");
         g_object_unref(rotated);
-        chdir(old_cwd); // Go back before returning
+        chdir(old_cwd);
         return;
     }
 
@@ -264,26 +306,19 @@ static void on_solve(GtkButton *button, gpointer user_data)
                    "Warning: Could not switch back to original directory.");
     }
 
-    predict(); // aura ++ ce qui savent savent
+    predict();
 
     int **res_pos = NULL;
     int words_count = -1;
 
     if (grid_blocks)
-
         res_pos = line_pos(grid_blocks, &words_count);
 
     for (int i = 0; i < words_count; i++)
     {
-        printf("mot no%i :\n", i);
-        printf("start = (%i,%i)\n", res_pos[i][0], res_pos[i][1]);
-        printf("end = (%i,%i)\n", res_pos[i][2], res_pos[i][3]);
-
         draw_line_thick(rotated, res_pos[i][0], res_pos[i][1], res_pos[i][2],
                         res_pos[i][3], 255, 0, 0, 255);
     }
-
-    // draw line
 
     for (int i = 0; i < words_count; i++)
     {
@@ -297,7 +332,6 @@ static void on_solve(GtkButton *button, gpointer user_data)
 
     g_idle_add(update_status_idle, "Block detection finished. Blocks saved.");
 
-    // --- Display the result ---
     GdkPixbuf *display_pixbuf =
         gdk_pixbuf_scale_simple(rotated, 400, 400, GDK_INTERP_BILINEAR);
     if (display_pixbuf)
@@ -311,6 +345,14 @@ static void on_solve(GtkButton *button, gpointer user_data)
     current_pixbuf = rotated;
 }
 
+/**
+ * @brief Handles the "Rotate" button click event
+ * 
+ * Rotates the current image by the angle specified in the entry field
+ * 
+ * @param button The button widget that was clicked
+ * @param user_data Unused user data
+ */
 static void on_rotate(GtkButton *button, gpointer user_data)
 {
     (void)button;
@@ -346,6 +388,14 @@ static void on_rotate(GtkButton *button, gpointer user_data)
     }
 }
 
+/**
+ * @brief Handles the "Save" button click event
+ * 
+ * Opens a file chooser dialog to save the current image
+ * 
+ * @param button The button widget that was clicked
+ * @param user_data Unused user data
+ */
 static void on_save(GtkButton *button, gpointer user_data)
 {
     (void)button;
@@ -353,7 +403,6 @@ static void on_save(GtkButton *button, gpointer user_data)
 
     if (!current_pixbuf)
     {
-        g_print("No image to save\n");
         return;
     }
 
@@ -374,12 +423,7 @@ static void on_save(GtkButton *button, gpointer user_data)
         GError *error = NULL;
         if (!gdk_pixbuf_save(current_pixbuf, filename, "png", &error, NULL))
         {
-            g_printerr("Error saving image: %s\n", error->message);
             g_error_free(error);
-        }
-        else
-        {
-            g_print("Image saved to %s\n", filename);
         }
 
         g_free(filename);
@@ -388,12 +432,18 @@ static void on_save(GtkButton *button, gpointer user_data)
     gtk_widget_destroy(dialog);
 }
 
-/* =========================
-   Main
-   ========================= */
+/**
+ * @brief Main entry point for the OCR GUI application
+ * 
+ * Initializes GTK, creates the main window with all UI components,
+ * and starts the GTK main loop
+ * 
+ * @param argc Number of command line arguments
+ * @param argv Array of command line arguments
+ * @return int Exit status (0 for success)
+ */
 int main(int argc, char *argv[])
 {
-    g_print("--- Starting GUI main() ---\n");
     gtk_init(&argc, &argv);
 
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -404,15 +454,12 @@ int main(int argc, char *argv[])
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
-    /* Image */
     image_widget = gtk_image_new();
     gtk_box_pack_start(GTK_BOX(vbox), image_widget, TRUE, TRUE, 0);
 
-    /* Status label */
     status_label = gtk_label_new("Ready");
     gtk_box_pack_start(GTK_BOX(vbox), status_label, FALSE, FALSE, 5);
 
-    /* Buttons */
     GtkWidget *hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 

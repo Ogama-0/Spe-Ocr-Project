@@ -8,6 +8,18 @@
 #define MAX_LIGNES 100
 #define MAX_COLS 100
 
+/**
+ * @brief Solves a word search puzzle by finding a word in the grid
+ * 
+ * Reads the grid from a file, searches for the specified word in all 8 directions
+ * (horizontal, vertical, and diagonal), and returns the pixel coordinates of the
+ * word's start and end positions.
+ * 
+ * @param grid Path to the grid file
+ * @param word Word to search for in the grid
+ * @param grid_blocks Array of Rect structures representing character positions
+ * @param results Array to store results [x_start, y_start, x_end, y_end]
+ */
 void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                 int* results)
 {
@@ -19,7 +31,6 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
     FILE *fichier = fopen(grid, "r");
     if (fichier == NULL)
     {
-        printf("impossible d'ouvrir le fichier.\n");
         return;
     }
 
@@ -66,7 +77,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
             if (grille[y][x] == mot[0])
             {
                 int ok = 1;
-                for (int k = 1; k < taille_mot; k++) // droite
+                for (int k = 1; k < taille_mot; k++)
                 {
                     if (x + k >= nb_colonnes || grille[y][x + k] != mot[k])
                     {
@@ -86,7 +97,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                 if (!trouve)
                 {
                     ok = 1;
-                    for (int k = 1; k < taille_mot; k++) // gauche
+                    for (int k = 1; k < taille_mot; k++)
                     {
                         if (x - k < 0 || grille[y][x - k] != mot[k])
                         {
@@ -110,7 +121,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     for (int k = 1; k < taille_mot; k++)
                     {
                         if (y + k >= nb_lignes ||
-                            grille[y + k][x] != mot[k]) // Bas
+                            grille[y + k][x] != mot[k])
                         {
                             ok = 0;
                             break;
@@ -126,7 +137,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     }
                 }
 
-                if (!trouve) // haut
+                if (!trouve)
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -147,7 +158,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     }
                 }
 
-                if (!trouve) // en bas a droite
+                if (!trouve)
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -169,7 +180,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     }
                 }
 
-                if (!trouve) // haut -gauche
+                if (!trouve)
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -191,7 +202,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     }
                 }
 
-                if (!trouve) // bas gauche
+                if (!trouve)
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -213,7 +224,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
                     }
                 }
 
-                if (!trouve) // haut droite
+                if (!trouve)
                 {
                     ok = 1;
                     for (int k = 1; k < taille_mot; k++)
@@ -256,9 +267,7 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
         results[1] = (begin.y+(begin.y+begin.h-1))/2;
 
         results[2] = (end.x+(end.x+end.w-1))/2;
-        results[3] = (end.y+(end.y+end.h-1))/2;       
-        
-        printf("(%d,%d)(%d,%d)\n", x_debut, y_debut, x_fin, y_fin);
+        results[3] = (end.y+(end.y+end.h-1))/2;
     }
     else
     {
@@ -266,6 +275,15 @@ void solve_word(char* grid, char* word, struct Rect* grid_blocks,
         results[1] = 0;
         results[2] = 0;
         results[3] = 0;
-        printf("Not found\n");
     }
 }
+
+/**
+ * @brief Searches for a word in the grid in all directions
+ * 
+ * @param grid 2D character grid
+ * @param word Word to search for
+ * @param rows Number of rows in the grid
+ * @param cols Number of columns in the grid
+ * @return int 1 if found, 0 otherwise
+ */

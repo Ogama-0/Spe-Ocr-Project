@@ -210,3 +210,10 @@ void formatting_binarized(GdkPixbuf *pixbuf, uint8_t *res)
 //         write(fd, "\n", 1);
 //     }
 // }
+
+/**
+ * @brief Converts a grayscale image to binary using adaptive thresholding
+ * 
+ * @param input Input grayscale image
+ * @return GdkPixbuf* Binary image, NULL on failure
+ */

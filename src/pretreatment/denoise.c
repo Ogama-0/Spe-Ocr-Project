@@ -10,6 +10,12 @@ int compare_guchar(const void *a, const void *b)
     return (int)(*(guchar*)a - *(guchar*)b);
 }
 
+/**
+ * @brief Removes noise from a binary image using morphological operations
+ * 
+ * @param input Binary input image
+ * @return GdkPixbuf* Denoised image, NULL on failure
+ */
 GdkPixbuf *median_filter(GdkPixbuf* pixbuf)
 {
     int w = gdk_pixbuf_get_width(pixbuf);

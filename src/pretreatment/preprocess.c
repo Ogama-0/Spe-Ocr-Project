@@ -10,6 +10,19 @@
 #include "preprocess.h"
 
 
+/**
+ * @brief Main preprocessing pipeline for input images
+ * 
+ * Applies the following transformations:
+ * 1. Rotation correction
+ * 2. Binarization
+ * 3. Noise removal
+ * 4. Block segmentation
+ * 
+ * @param image_path Path to the input image file
+ * @return int 0 on success, -1 on failure
+ */
+
 int preprocess_image(const char *input_path, const char *output_path,
                      double angle)
 {

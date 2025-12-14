@@ -538,3 +538,13 @@ struct Rect* save_blocks(struct Rect *letters, int m_height,
 
     return grid.blocks;
 }
+
+/**
+ * @brief Segments the grid into individual character blocks
+ * 
+ * Detects grid lines, extracts cells, and saves individual character images
+ * 
+ * @param image Input preprocessed image
+ * @param output_dir Directory to save extracted blocks
+ * @return int Number of blocks extracted, -1 on failure
+ */
