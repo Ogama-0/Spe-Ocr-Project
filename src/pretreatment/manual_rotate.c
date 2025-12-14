@@ -11,7 +11,7 @@ GdkPixbuf *rotate_pixbuf(GdkPixbuf *src, double angle_degrees)
     int rowstride = gdk_pixbuf_get_rowstride(src);
     guchar *src_pixels = gdk_pixbuf_get_pixels(src);
 
-    double angle = angle_degrees * M_PI / 180.0;
+    double angle = angle_degrees * G_PI / 180.0;
     double cos_a = cos(angle);
     double sin_a = sin(angle);
 
