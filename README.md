@@ -82,8 +82,10 @@ src/
 ```
 
 ## Credits
-
-Developed as part of the EPITA OCR Project 2025.
+Alexendre Abbruzzese
+Benjamin Poussart
+Lilian Cogan
+Oscar Cornut
 
 ## License
 
