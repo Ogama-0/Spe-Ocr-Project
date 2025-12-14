@@ -351,27 +351,27 @@ static void on_save(GtkButton *button, gpointer user_data)
     (void)button;
     (void)user_data;
 
-    // if (!current_pixbuf)
-    // {
-    //     g_print("No image to save\n");
-    //     return;
-    // }
+    if (!current_pixbuf)
+    {
+        g_print("No image to save\n");
+        return;
+    }
 
-    // struct stat st;
-    // if (stat("output", &st) == -1)
-    //     mkdir("output", 0700);
+    struct stat st;
+    if (stat("output", &st) == -1)
+        mkdir("output", 0700);
 
-    // GError *error = NULL;
-    // if (!gdk_pixbuf_save(current_pixbuf, "output/saved_image.png", "png",
-    //                      &error, NULL))
-    // {
-    //     g_print("Error saving image: %s\n", error->message);
-    //     g_error_free(error);
-    // }
-    // else
-    // {
-    //     g_print("Image saved successfully\n");
-    // }
+    GError *error = NULL;
+    if (!gdk_pixbuf_save(current_pixbuf, "output/saved_image.png", "png",
+                         &error, NULL))
+    {
+        g_print("Error saving image: %s\n", error->message);
+        g_error_free(error);
+    }
+    else
+    {
+        g_print("Image saved successfully\n");
+    }
 }
 
 /* =========================
