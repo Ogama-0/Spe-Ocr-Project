@@ -7,7 +7,7 @@ CFLAGS = -std=c11 -Wall -Wextra -Iinclude -Itools \
 LDFLAGS = -lm \
           $(shell pkg-config --libs gdk-pixbuf-2.0)
 
-SRC     = main.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/ext_img.c tools/int_matrix.c
+SRC     = main.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/ext_img.c tools/int_matrix.c train_ocr.c
 SRCPRED = predict.c ocr.c ../matrix/matrix.c ../matrix/ops.c tools/activations.c tools/img.c tools/ext_img.c tools/int_matrix.c
 
 OBJ     = $(SRC:.c=.o)

@@ -6,28 +6,43 @@
 #include <time.h>
 
 char *IMAGE_PREDICT_TEST = "./dataset_test";
-char *IMAGE_PREDICT = "../pretreatment/blocks/grid";
+
+char *GRID_IMAGE_PREDICT = "../pretreatment/blocks/grid";
+char *WORDS_IMAGE_PREDICT = "../pretreatment/blocks/words";
+
 char *NETWORK = "./best_model";
-char *INPUT_SOLVER = "input_solver";
+char *GRID_INPUT_SOLVER = "input_solver/grid";
+char *WORDS_INPUT_SOLVER = "input_solver/words";
 
-int main() {
-  srand(time(NULL));
+int main()
+{
+    srand(time(NULL));
 
-  int count;
-  ImgToPredict **imgs_to_test = load_imgs(IMAGE_PREDICT, &count);
-  printf("dataset loaded succesfully :\ncount = %i\n", count);
+    int grid_count;
+    ImgToPredict **grid_imgs_to_test =
+        load_imgs(GRID_IMAGE_PREDICT, &grid_count);
+    printf("dataset loaded succesfully :\ncount = %i\n", grid_count);
 
-  NeuralNetwork *net = network_load(NETWORK);
-  printf("network load successfuly\n");
+    int words_count;
+    ImgToPredict **words_imgs_to_test =
+        load_imgs(WORDS_IMAGE_PREDICT, &words_count);
 
-  network_predict_imgs_runtime(net, imgs_to_test, count);
+    NeuralNetwork *net = network_load(NETWORK);
+    printf("network load successfuly\n");
 
-  printf("prediction done.\n");
+    network_predict_imgs_runtime(net, grid_imgs_to_test, grid_count);
+    network_predict_imgs_runtime(net, words_imgs_to_test, words_count);
 
-  img_save_predict(INPUT_SOLVER, imgs_to_test, count);
-  printf("save imgs succsessfully :%s:", INPUT_SOLVER);
+    printf("prediction done.\n");
 
-  imgsTo_free(imgs_to_test, count);
-  network_free(net);
-  return 0;
+    img_save_predict(GRID_INPUT_SOLVER, grid_imgs_to_test, grid_count);
+    printf("save imgs succsessfully : %s\n", GRID_INPUT_SOLVER);
+
+    img_save_words_predict(WORDS_INPUT_SOLVER, words_imgs_to_test, words_count);
+    printf("save imgs succsessfully :%s\n", WORDS_INPUT_SOLVER);
+
+    imgsTo_free(grid_imgs_to_test, grid_count);
+    imgsTo_free(words_imgs_to_test, words_count);
+    network_free(net);
+    return 0;
 }

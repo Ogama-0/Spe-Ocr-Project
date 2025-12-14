@@ -1,13 +1,20 @@
-#include "train_ocr.h"
 #include "ocr.h"
 #include "tools/img.h"
+#include "train_ocr.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
+char *PATH_DATASET = "../dataset_processed_LeBenjPrime";
+char *PATH_NETWORK_TO_SAVE = "net_200-1.00-10_12";
+int MAX_EPOCH = 150;
+int HIDDEN = 200;
+double LR = 0.01;
+
 static void shuffle_dataset(Img **dataset, int count)
 {
-    for (int i = count - 1; i > 0; i--) {
+    for (int i = count - 1; i > 0; i--)
+    {
         int j = rand() % (i + 1);
         Img *tmp = dataset[i];
         dataset[i] = dataset[j];
@@ -20,8 +27,9 @@ int train_ocr(void)
     srand(time(NULL));
 
     int count;
-    Img **imgs = load_dataset("../dataset_processed", &count);
-    if (!imgs) {
+    Img **imgs = load_dataset(PATH_DATASET, &count);
+    if (!imgs)
+    {
         fprintf(stderr, "Failed to load dataset\n");
         return 1;
     }
@@ -36,24 +44,20 @@ int train_ocr(void)
     Img **train_imgs = imgs;
     Img **val_imgs = imgs + train_count;
 
-    NeuralNetwork *net =
-        network_create(27 * 27, 200, 26, 0.001);
+    NeuralNetwork *net = network_create(27 * 27, HIDDEN, 26, LR);
 
-    if (!net) {
+    if (!net)
+    {
         fprintf(stderr, "Failed to create network\n");
         imgs_free(imgs, count);
         return 1;
     }
 
-    int epoch = 10;
-    network_train_imgs(
-        net,
-        train_imgs, train_count,
-        val_imgs, val_count,
-        epoch
-    );
+    int epoch = MAX_EPOCH;
+    network_train_imgs(net, train_imgs, train_count, val_imgs, val_count,
+                       epoch);
 
-    network_save(net, "net_200-1.00-10_12");
+    network_save(net, PATH_NETWORK_TO_SAVE);
 
     imgs_free(imgs, count);
     network_free(net);
