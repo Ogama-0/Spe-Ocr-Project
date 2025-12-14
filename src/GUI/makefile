@@ -16,6 +16,7 @@ SRCS = ocr_gui.c \
        ../matrix/matrix.c \
        ../matrix/ops.c \
        ../solver/find_words.c \
+       ../ocr/predict.c \
        ../solver/solver.c
 
 CC = gcc
@@ -29,5 +30,8 @@ $(TARGET): $(SRCS)
 
 clean:
 	rm -f $(TARGET) *.o
+	@rm ../pretreatment/blocks/grid/*
+	@rm ../pretreatment/blocks/words/*
+	@rm ./input_solver/*
 
 .PHONY: all clean

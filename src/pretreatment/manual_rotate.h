@@ -3,7 +3,7 @@
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-GdkPixbuf* rotate_pixbuf(GdkPixbuf* src, double angle_degrees);
+GdkPixbuf* manual_rotate(GdkPixbuf* src, double angle_degrees);
 GdkPixbuf* automatic_rotate(GdkPixbuf* pixbuf);
 
 #endif

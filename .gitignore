@@ -4,3 +4,12 @@
 # envrc cache
 .direnv/
 .cache/
+
+src/pretreatment/blocks/words/*
+src/pretreatment/blocks/grid/*
+src/GUI/best_model/*
+src/GUI/input_solver/*
+
+net_200-1.00-10_12
+
+compile_commands.json

@@ -31,6 +31,7 @@
             buildInputs = with pkgsForSystem; [
               SDL2
               # sdl3
+              gtk3
               gdk-pixbuf
               gdk-pixbuf.dev
             ];

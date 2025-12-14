@@ -1,22 +1,25 @@
+
 #include "ocr.h"
 #include "tools/ext_img.h"
 #include "tools/img.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
 char *IMAGE_PREDICT_TEST = "./dataset_test";
 
-char *GRID_IMAGE_PREDICT = "../pretreatment/blocks/grid";
-char *WORDS_IMAGE_PREDICT = "../pretreatment/blocks/words";
+char *GRID_IMAGE_PREDICT =
+    "../pretreatment/blocks/grid"; //   ou il vas chercher la grid
+char *WORDS_IMAGE_PREDICT =
+    "../pretreatment/blocks/words"; // ou il vas chercher les mots (en mode sur
+                                    // le cote)
 
-char *NETWORK = "./best_model";
-char *GRID_INPUT_SOLVER = "input_solver/grid";
-char *WORDS_INPUT_SOLVER = "input_solver/words";
+char *NETWORK = "./best_model"; // ou il vas chercher le nw
+char *GRID_INPUT_SOLVER =
+    "input_solver/grid"; // ou il vas mettre le fichier grid input du solver
+char *WORDS_INPUT_SOLVER =
+    "input_solver/words"; // ou il vas mettre le fichier words input du solver
 
-int main()
+void predict()
 {
-    srand(time(NULL));
 
     int grid_count;
     ImgToPredict **grid_imgs_to_test =
@@ -35,6 +38,19 @@ int main()
 
     printf("prediction done.\n");
 
+    printf("\tgrid :\n\n");
+    for (int i = 0; i < grid_count; i++)
+    {
+        printf("img (%i,%i):%c\n", grid_imgs_to_test[i]->grid_y,
+               grid_imgs_to_test[i]->grid_x, grid_imgs_to_test[i]->label);
+    }
+    printf("\twords :\n\n");
+    for (int i = 0; i < words_count; i++)
+    {
+        printf("img (%i,%i):%c\n", words_imgs_to_test[i]->grid_y,
+               words_imgs_to_test[i]->grid_x, words_imgs_to_test[i]->label);
+    }
+
     img_save_predict(GRID_INPUT_SOLVER, grid_imgs_to_test, grid_count);
     printf("save imgs succsessfully : %s\n", GRID_INPUT_SOLVER);
 
@@ -44,5 +60,12 @@ int main()
     imgsTo_free(grid_imgs_to_test, grid_count);
     imgsTo_free(words_imgs_to_test, words_count);
     network_free(net);
-    return 0;
 }
+
+// int main()
+// {
+//     srand(time(NULL));
+//     predict();
+
+//     return 0;
+// }

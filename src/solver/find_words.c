@@ -1,9 +1,9 @@
+#include "../pretreatment/blocks_treatment.h"
+#include "solver.h"
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
-#include "../pretreatment/blocks_treatment.h"
-#include "solver.h"
 
 #define MAX_LINE_LEN 256
 
@@ -74,29 +74,32 @@ char **read_words(const char *filename, int *count)
     return words;
 }
 
-int line_pos(struct Rect* grid_blocks)
+int **line_pos(struct Rect *grid_blocks, int *words_count)
 {
-    int count = 0;
-    char **words = read_words("../solver/fichier_mots.txt", &count);
-    if (!words)
+    char **words = read_words("input_solver/words", words_count);
+    if (!words || *words_count == -1)
     {
         fprintf(stderr, "Error on reading words\n");
-        return 1;
+        return NULL;
     }
 
-    for (int i = 0; i < count; i++)
+    int **globalsresults = calloc(*words_count, sizeof(int *));
+
+    for (int i = 0; i < *words_count; i++)
     {
-        int results[4];
-        solve_word("../solver/grid.txt",words[i],grid_blocks,results);
+        // int results[4];
+        int *results = calloc(4, sizeof(int));
+        solve_word("input_solver/grid", words[i], grid_blocks, results);
         for (int i = 0; i < 4; i++)
         {
-            printf("%i ",results[i]);
+            printf("%i ", results[i]);
         }
         printf("\n");
+        globalsresults[i] = results;
         free(words[i]);
     }
     free(words);
     free(grid_blocks);
 
-    return 0;
+    return globalsresults;
 }

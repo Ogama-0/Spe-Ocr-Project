@@ -1,14 +1,14 @@
+#include "../solver/solver.h"
+#include "binarize.h"
+#include "blocks_treatment.h"
+#include "denoise.h"
+#include "err.h"
+#include "manual_rotate.h"
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdint.h>
-#include "manual_rotate.h"
-#include "denoise.h"
-#include "blocks_treatment.h"
-#include "err.h"
-#include "binarize.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "../solver/solver.h"
 
 // main function to call every other ones.
 int main(int argc, char *argv[])
@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 
     // denoise
 
-    GError* error2 = NULL;
-    GdkPixbuf* denoised = median_filter(pixbuf);
+    GError *error2 = NULL;
+    GdkPixbuf *denoised = median_filter(pixbuf);
     if (!gdk_pixbuf_save(denoised, "images/denoised.bmp", "bmp", &error2, NULL))
     {
         fprintf(stderr, "Error on saving base image to bmp: %s\n",
@@ -69,9 +69,10 @@ int main(int argc, char *argv[])
 
     // binarize
 
-    GError* error3 = NULL;
+    GError *error3 = NULL;
     binarize(denoised);
-    if (!gdk_pixbuf_save(denoised, "images/binarized.bmp", "bmp", &error3, NULL))
+    if (!gdk_pixbuf_save(denoised, "images/binarized.bmp", "bmp", &error3,
+                         NULL))
     {
         fprintf(stderr, "Error on saving base image to bmp: %s\n",
                 error3->message);
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
     }
     */
 
-    GError* error4 = NULL;
+    GError *error4 = NULL;
     GdkPixbuf *rotated = automatic_rotate(denoised);
     binarize(rotated);
 
@@ -139,17 +140,17 @@ int main(int argc, char *argv[])
     size_t size_blocks = 0;
     size_t size_letters = 0;
     int m_height = 0;
-    
+
     struct Rect *blocks = get_blocks(rotated, res, &size_blocks);
-    struct Rect *letters = get_letter_blocks(blocks, size_blocks, &m_height, res,
-                                          width, &size_letters);
+    struct Rect *letters = get_letter_blocks(blocks, size_blocks, &m_height,
+                                             res, width, &size_letters);
 
     // printf("nb of letters in main: %zu\n", size_letters);
 
-    struct Rect* grid_blocks = save_blocks(letters, m_height, size_letters,
-                rotated);
+    // struct Rect* grid_blocks = save_blocks(letters, m_height, size_letters,
+    // rotated);
 
-    line_pos(grid_blocks);
+    // line_pos(grid_blocks);
 
     printf("Blocks saved in 'blocks/' folder.\n");
 
@@ -159,6 +160,6 @@ int main(int argc, char *argv[])
     g_object_unref(rotated);
     g_object_unref(denoised);
     g_object_unref(pixbuf);
-    
+
     return 0;
 }

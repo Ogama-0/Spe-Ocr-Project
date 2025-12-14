@@ -19,5 +19,173 @@
     "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
     "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/main.c",
     "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/main.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "ocr.o",
+      "ocr.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/ocr.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/ocr.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "../matrix/matrix.o",
+      "../matrix/matrix.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/matrix/matrix.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/matrix/matrix.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "../matrix/ops.o",
+      "../matrix/ops.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/matrix/ops.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/matrix/ops.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "tools/activations.o",
+      "tools/activations.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/activations.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/activations.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "tools/img.o",
+      "tools/img.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/img.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/img.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "tools/ext_img.o",
+      "tools/ext_img.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/ext_img.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/ext_img.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "tools/int_matrix.o",
+      "tools/int_matrix.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/int_matrix.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/tools/int_matrix.o"
+  },
+  {
+    "arguments": [
+      "/home/ogama/.nix-profile/bin/gcc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Iinclude",
+      "-Itools",
+      "-I/nix/store/2gj55fr5zgwpa1d29dmdq86xdxry1i3k-gdk-pixbuf-2.42.12-dev/include/gdk-pixbuf-2.0",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include",
+      "-I/nix/store/yn3cvc4sgi6xx6pf7fvf36kk713h7p0g-glib-2.84.3-dev/include/glib-2.0",
+      "-I/nix/store/svl12332fv5skndwxvsqw0w1i3xy4viv-glib-2.84.3/lib/glib-2.0/include",
+      "-c",
+      "-o",
+      "train_ocr.o",
+      "train_ocr.c"
+    ],
+    "directory": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr",
+    "file": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/train_ocr.c",
+    "output": "/home/ogama/documents/epita/OCR-proj-2025/Spe-Ocr-Project/src/ocr/train_ocr.o"
   }
 ]

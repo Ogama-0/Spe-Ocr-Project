@@ -2,7 +2,9 @@
 
 #define DETECT_BLOCKS_H
 
+#include <stddef.h>
 #include <stdint.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 struct Rect {
   int x; int y;

@@ -1,9 +1,9 @@
+#include "blocks_treatment.h"
+#include "manual_rotate.h"
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <math.h>
-#include "manual_rotate.h"
-#include "blocks_treatment.h"
 
-GdkPixbuf *rotate_pixbuf(GdkPixbuf *src, double angle_degrees)
+GdkPixbuf *manual_rotate(GdkPixbuf *src, double angle_degrees)
 {
     int src_w = gdk_pixbuf_get_width(src);
     int src_h = gdk_pixbuf_get_height(src);
@@ -168,7 +168,7 @@ GdkPixbuf *automatic_rotate(GdkPixbuf *pixbuf)
 
     for (int i = min_thresh; i <= max_thresh; i++)
     {
-        GdkPixbuf *rotated = rotate_pixbuf(pixbuf, (double)i);
+        GdkPixbuf *rotated = manual_rotate(pixbuf, (double)i);
         guchar *pixels = gdk_pixbuf_get_pixels(rotated);
 
         double proj2[height];

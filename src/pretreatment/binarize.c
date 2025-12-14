@@ -1,8 +1,8 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdint.h>
 
 void grayscale(GdkPixbuf *pixbuf)
 {
@@ -14,7 +14,7 @@ void grayscale(GdkPixbuf *pixbuf)
 
     for (int i = 0; i < height; i++)
     {
-        guchar* p = pixels + i * rowstride;   
+        guchar *p = pixels + i * rowstride;
         for (int j = 0; j < width; j++)
         {
             guchar r = p[0];
@@ -47,7 +47,7 @@ int get_gray_mean(GdkPixbuf *pixbuf)
 
     for (int i = 0; i < height; i++)
     {
-        guchar* p = pixels + i*rowstride;
+        guchar *p = pixels + i * rowstride;
         for (int j = 0; j < width; j++)
         {
             guchar r = p[0];
@@ -60,11 +60,11 @@ int get_gray_mean(GdkPixbuf *pixbuf)
         }
     }
 
-    size_t res = (size_t)sum / (height*width);
+    size_t res = (size_t)sum / (height * width);
     return (int)res;
 }
 
-void binarize(GdkPixbuf* pixbuf)
+void binarize(GdkPixbuf *pixbuf)
 {
     int width = gdk_pixbuf_get_width(pixbuf);
     int height = gdk_pixbuf_get_height(pixbuf);
@@ -76,7 +76,7 @@ void binarize(GdkPixbuf* pixbuf)
 
     for (int i = 0; i < height; i++)
     {
-        guchar* p = pixels + i*rowstride;
+        guchar *p = pixels + i * rowstride;
         for (int j = 0; j < width; j++)
         {
             guchar a = 255;
@@ -110,7 +110,7 @@ void binarize(GdkPixbuf* pixbuf)
     }
 }
 
-void binarize_letters(GdkPixbuf* pixbuf)
+void binarize_letters(GdkPixbuf *pixbuf)
 {
     int width = gdk_pixbuf_get_width(pixbuf);
     int height = gdk_pixbuf_get_height(pixbuf);
@@ -161,7 +161,7 @@ int is_black(guchar pixel)
 }
 
 // transform the binarized image into an array of 0 and 1
-void formatting_binarized(GdkPixbuf* pixbuf, uint8_t *res)
+void formatting_binarized(GdkPixbuf *pixbuf, uint8_t *res)
 {
     int width = gdk_pixbuf_get_width(pixbuf);
     int height = gdk_pixbuf_get_height(pixbuf);
@@ -171,16 +171,16 @@ void formatting_binarized(GdkPixbuf* pixbuf, uint8_t *res)
 
     for (int i = 0; i < height; i++)
     {
-        guchar* p = pixels + i*rowstride;
+        guchar *p = pixels + i * rowstride;
         for (int j = 0; j < width; j++)
         {
             if (is_black(p[0]))
             {
-                res[i*width+j] = 1;
+                res[i * width + j] = 1;
             }
             else
             {
-                res[i*width+j] = 0;
+                res[i * width + j] = 0;
             }
 
             p += n_channels;
@@ -188,25 +188,25 @@ void formatting_binarized(GdkPixbuf* pixbuf, uint8_t *res)
     }
 }
 
-void print_formatted_bin(uint8_t *arr, int width, int height)
-{
-    FILE *f = fopen("grid_format.txt", "w");
-    int fd = fileno(f);
+// void print_formatted_bin(uint8_t *arr, int width, int height)
+// {
+//     FILE *f = fopen("grid_format.txt", "w");
+//     int fd = fileno(f);
 
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            int n = arr[i * width + j];
-            if (n == 1)
-            {
-                write(fd, "1", 1);
-            }
-            else
-            {
-                write(fd, " ", 1);
-            }
-        }
-        write(fd, "\n", 1);
-    }
-}
+//     for (int i = 0; i < height; i++)
+//     {
+//         for (int j = 0; j < width; j++)
+//         {
+//             int n = arr[i * width + j];
+//             if (n == 1)
+//             {
+//                 write(fd, "1", 1);
+//             }
+//             else
+//             {
+//                 write(fd, " ", 1);
+//             }
+//         }
+//         write(fd, "\n", 1);
+//     }
+// }
