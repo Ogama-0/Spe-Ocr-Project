@@ -3,11 +3,11 @@
 #include "manual_rotate.h"
 #include "denoise.h"
 #include "binarize.h"
-#include <SDL2/SDL.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <unistd.h> // For chdir
 
 int preprocess_image(const char *input_path, const char *output_path, double angle)
 {
@@ -20,91 +20,82 @@ int preprocess_image(const char *input_path, const char *output_path, double ang
         return 1;
     }
 
-    // Crée le dossier images si nécessaire
-    struct stat st = {0};
-    if (stat("images", &st) == -1)
-        mkdir("images", 0700);
+    // 1. Grayscale
+    grayscale(pixbuf);
 
-    if (!gdk_pixbuf_save(pixbuf, "images/base_image.bmp", "bmp", &error, NULL)) {
-        fprintf(stderr,"Error saving base BMP: %s\n", error->message);
+    // 2. Binarize
+    binarize(pixbuf);
+
+    // 3. Denoise
+    GdkPixbuf* denoised_pixbuf = median_filter(pixbuf);
+    g_object_unref(pixbuf); // free original pixbuf
+
+    // 4. Rotate
+    GdkPixbuf* rotated_pixbuf = rotate_pixbuf(denoised_pixbuf, angle);
+    g_object_unref(denoised_pixbuf);
+
+    // Save final processed image (optional, but good for debugging)
+    if (!gdk_pixbuf_save(rotated_pixbuf, output_path, "png", &error, NULL)) {
+        fprintf(stderr,"Error saving final processed image: %s\n", error->message);
         g_error_free(error);
-        g_object_unref(pixbuf);
+    }
+
+    // 5. Extract blocks
+    char old_cwd[1024];
+    if (getcwd(old_cwd, sizeof(old_cwd)) == NULL) {
+        fprintf(stderr, "Error: Could not get current directory.\n");
+        g_object_unref(rotated_pixbuf);
         return 1;
     }
 
-    g_object_unref(pixbuf);
-
-    SDL_Surface* load = SDL_LoadBMP("images/base_image.bmp");
-    if (!load) {
-        fprintf(stderr,"SDL_LoadBMP failed: %s\n", SDL_GetError());
+    // The block saving functions assume a relative path, so we chdir
+    if (chdir("../pretreatment") != 0) {
+        fprintf(stderr, "Error: Could not switch to pretreatment directory.\n");
+        g_object_unref(rotated_pixbuf);
         return 1;
     }
+    
+    struct stat st = {0};
+    if (stat("blocks", &st) == -1) mkdir("blocks", 0700);
+    if (stat("blocks/grid", &st) == -1) mkdir("blocks/grid", 0700);
+    if (stat("blocks/words", &st) == -1) mkdir("blocks/words", 0700);
 
-    SDL_Surface* formatted = SDL_ConvertSurfaceFormat(load, SDL_PIXELFORMAT_RGBA8888, 0);
-    SDL_FreeSurface(load);
-
-    // Grayscale
-    grayscale(formatted);
-    SDL_SaveBMP(formatted,"images/grayscale.bmp");
-
-    // Binarize
-    binarize(formatted);
-    SDL_SaveBMP(formatted,"images/binarized.bmp");
-
-    // Denoise
-    SDL_Surface* denoised = median_filter(formatted);
-    SDL_SaveBMP(denoised,"images/denoised.bmp");
-
-    // Rotate
-    GError* error2 = NULL;
-    GdkPixbuf* pixbuf2 = gdk_pixbuf_new_from_file("images/denoised.bmp",&error2);
-    if (!pixbuf2) {
-        fprintf(stderr,"Error loading denoised BMP: %s\n", error2->message);
-        g_error_free(error2);
-        SDL_FreeSurface(formatted);
-        SDL_FreeSurface(denoised);
+    int height = gdk_pixbuf_get_height(rotated_pixbuf);
+    int width  = gdk_pixbuf_get_width(rotated_pixbuf);
+    uint8_t* res = malloc(height * width * sizeof(uint8_t));
+    if (!res) {
+        fprintf(stderr, "Error: Block detection memory allocation failed.\n");
+        g_object_unref(rotated_pixbuf);
+        chdir(old_cwd);
         return 1;
     }
-
-    pixbuf2 = rotate_pixbuf(pixbuf2, angle);
-
-    if (!gdk_pixbuf_save(pixbuf2, output_path, "bmp", &error2, NULL)) {
-        fprintf(stderr,"Error saving rotated BMP: %s\n", error2->message);
-        g_error_free(error2);
-        g_object_unref(pixbuf2);
-        SDL_FreeSurface(formatted);
-        SDL_FreeSurface(denoised);
-        return 1;
-    }
-
-    g_object_unref(pixbuf2);
-
-    // Extract blocks
-    SDL_Surface* rotated = SDL_LoadBMP(output_path);
-    if (!rotated) {
-        fprintf(stderr,"SDL_LoadBMP failed for rotated BMP: %s\n", SDL_GetError());
-        SDL_FreeSurface(formatted);
-        SDL_FreeSurface(denoised);
-        return 1;
-    }
-
-    SDL_Surface* rotated_formatted = SDL_ConvertSurfaceFormat(rotated, SDL_PIXELFORMAT_RGBA8888, 0);
-    SDL_FreeSurface(rotated);
-
-    int height = rotated_formatted->h;
-    int width  = rotated_formatted->w;
-    Uint8 res[height*width];
-    formatting_binarized(rotated_formatted,res);
+    
+    formatting_binarized(rotated_pixbuf, res);
 
     size_t size_blocks = 0;
-    SDL_Rect* blocks = get_blocks(rotated_formatted,res,&size_blocks);
+    size_t size_letters = 0;
+    int m_height = 0;
+    
+    struct Rect* blocks = get_blocks(rotated_pixbuf, res, &size_blocks);
+    struct Rect* letters = get_letter_blocks(blocks, size_blocks, &m_height, res, width, &size_letters);
+    struct Rect* grid_blocks = save_blocks(letters, m_height, size_letters, rotated_pixbuf);
+    
+    if (grid_blocks)
+    {
+        // Do something with grid_blocks if needed, maybe return them?
+        // For now, let's assume save_blocks did everything needed.
+    }
 
-    save_blocks(rotated_formatted,blocks,size_blocks);
-
+    free(res);
     free(blocks);
-    SDL_FreeSurface(formatted);
-    SDL_FreeSurface(denoised);
-    SDL_FreeSurface(rotated_formatted);
+    free(letters);
+    // grid_blocks is a pointer into the 'letters' array, so it doesn't need separate freeing.
+
+    g_object_unref(rotated_pixbuf);
+
+    if (chdir(old_cwd) != 0) {
+        fprintf(stderr, "Warning: Could not switch back to original directory.\n");
+    }
 
     return 0;
 }

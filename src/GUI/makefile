@@ -6,6 +6,7 @@ SRCS = ocr_gui.c \
        ../pretreatment/binarize.c \
        ../pretreatment/denoise.c \
        ../pretreatment/blocks_treatment.c \
+       ../pretreatment/pixbuf_scale.c \
        ../ocr/ocr.c \
        ../ocr/train_ocr.c \
        ../ocr/tools/activations.c \
@@ -13,11 +14,13 @@ SRCS = ocr_gui.c \
        ../ocr/tools/ext_img.c \
        ../ocr/tools/int_matrix.c \
        ../matrix/matrix.c \
-       ../matrix/ops.c
+       ../matrix/ops.c \
+       ../solver/find_words.c \
+       ../solver/solver.c
 
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra `pkg-config --cflags gtk+-3.0 sdl2` -I../ocr/tools -I../matrix
-LDFLAGS = `pkg-config --libs gtk+-3.0 sdl2` -lm
+CFLAGS = -std=c11 -Wall -Wextra `pkg-config --cflags gtk+-3.0` -I../ocr/tools -I../matrix
+LDFLAGS = `pkg-config --libs gtk+-3.0` -lm
 
 all: $(TARGET)
 
